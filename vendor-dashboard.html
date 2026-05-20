@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendor Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f7f6f3;
+    color: #1a1a18;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e2e0d8;
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: #1a1a18; }
+  h1 { font-size: 1.1rem; font-weight: 500; letter-spacing: -0.01em; }
+
+  .last-updated {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: #888780;
+  }
+
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  select, input[type="text"] {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border: 1px solid #d3d1c7;
+    border-radius: 6px;
+    background: #fff;
+    color: #1a1a18;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  select:focus, input[type="text"]:focus { border-color: #1a1a18; }
+
+  input[type="text"] { min-width: 200px; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1px solid #e2e0d8;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    color: #888780;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .stat-sub {
+    font-size: 0.72rem;
+    color: #888780;
+    margin-top: 4px;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 640px) { .charts-grid { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: #fff;
+    border: 1px solid #e2e0d8;
+    border-radius: 10px;
+    padding: 1.25rem;
+  }
+
+  .chart-title {
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888780;
+    margin-bottom: 1rem;
+  }
+
+  .chart-wrap { position: relative; width: 100%; height: 220px; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 10px;
+    font-size: 0.72rem;
+    color: #5f5e5a;
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  .table-card {
+    background: #fff;
+    border: 1px solid #e2e0d8;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e2e0d8;
+  }
+
+  .table-title {
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888780;
+  }
+
+  .table-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: #888780;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  thead th {
+    text-align: left;
+    padding: 10px 1.25rem;
+    font-size: 0.68rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888780;
+    border-bottom: 1px solid #e2e0d8;
+    background: #faf9f7;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #f0ede6;
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #faf9f7; }
+
+  tbody td {
+    padding: 10px 1.25rem;
+    color: #1a1a18;
+    vertical-align: middle;
+  }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: #888780;
+    font-size: 0.85rem;
+    gap: 10px;
+  }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid #e2e0d8;
+    border-top-color: #1a1a18;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .no-data {
+    padding: 2rem;
+    text-align: center;
+    color: #888780;
+    font-size: 0.85rem;
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 1.25rem;
+    border-top: 1px solid #e2e0d8;
+    font-size: 0.75rem;
+    color: #888780;
+  }
+
+  .pag-btns { display: flex; gap: 4px; }
+
+  .pag-btn {
+    padding: 4px 10px;
+    border: 1px solid #d3d1c7;
+    border-radius: 5px;
+    background: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    cursor: pointer;
+    color: #1a1a18;
+    transition: background 0.1s;
+  }
+
+  .pag-btn:hover { background: #f7f6f3; }
+  .pag-btn:disabled { opacity: 0.4; cursor: default; }
+  .pag-btn.active { background: #1a1a18; color: #fff; border-color: #1a1a18; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <h1>Vendor Directory</h1>
+  </div>
+  <span class="last-updated" id="lastUpdated">Loading...</span>
+</header>
+
+<div class="filters">
+  <input type="text" id="searchInput" placeholder="Search company or owner..." oninput="applyFilters()">
+  <select id="categoryFilter" onchange="applyFilters()">
+    <option value="">All categories</option>
+  </select>
+  <select id="subcategoryFilter" onchange="applyFilters()">
+    <option value="">All subcategories</option>
+  </select>
+  <select id="yearFilter" onchange="applyFilters()">
+    <option value="">All years</option>
+  </select>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Total vendors</div>
+    <div class="stat-value" id="statTotal">—</div>
+    <div class="stat-sub">in directory</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Categories</div>
+    <div class="stat-value" id="statCats">—</div>
+    <div class="stat-sub">business types</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Subcategories</div>
+    <div class="stat-value" id="statSubs">—</div>
+    <div class="stat-sub">specialisations</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Newest vendor</div>
+    <div class="stat-value" style="font-size:1rem; padding-top:4px;" id="statNewest">—</div>
+    <div class="stat-sub" id="statNewestDate"></div>
+  </div>
+</div>
+
+<div class="charts-grid">
+  <div class="chart-card">
+    <div class="chart-title">Vendors by category</div>
+    <div class="chart-wrap">
+      <canvas id="catChart" role="img" aria-label="Bar chart showing number of vendors per category"></canvas>
+    </div>
+    <div class="legend" id="catLegend"></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Vendors by subcategory</div>
+    <div class="chart-wrap">
+      <canvas id="subChart" role="img" aria-label="Horizontal bar chart showing vendors per subcategory"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-header">
+    <span class="table-title">All vendors</span>
+    <span class="table-count" id="tableCount"></span>
+  </div>
+  <div id="tableBody">
+    <div class="loading"><div class="spinner"></div> Loading vendor data...</div>
+  </div>
+  <div class="pagination" id="pagination" style="display:none;">
+    <span id="pagInfo"></span>
+    <div class="pag-btns" id="pagBtns"></div>
+  </div>
+</div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=0&single=true&output=csv';
+
+const PALETTE = ['#2c2c2a','#639922','#ba7517','#0f6e56','#993c1d','#185fa5','#993556','#534ab7','#636363'];
+const PAGE_SIZE = 15;
+
+let allData = [], filtered = [], catChart, subChart, currentPage = 1;
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).map(line => {
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let ch of line) {
+      if (ch === '"') inQ = !inQ;
+      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    cols.push(cur.trim());
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (cols[i] || '').replace(/^"|"$/g, '').trim());
+    return obj;
+  }).filter(r => r[headers[0]]);
+}
+
+function parseDate(str) {
+  if (!str) return null;
+  const parts = str.split('/');
+  if (parts.length === 3) {
+    let [d, m, y] = parts;
+    if (y.length === 2) y = '20' + y;
+    return new Date(`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`);
+  }
+  return new Date(str);
+}
+
+function formatDate(str) {
+  const d = parseDate(str);
+  if (!d || isNaN(d)) return str;
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function countBy(arr, key) {
+  const counts = {};
+  arr.forEach(r => { const v = r[key] || 'Unknown'; counts[v] = (counts[v] || 0) + 1; });
+  return counts;
+}
+
+function getCatKey(data) {
+  const keys = Object.keys(data[0] || {});
+  return keys.find(k => k.toLowerCase().includes('category') && !k.toLowerCase().includes('sub')) || keys[1];
+}
+function getSubKey(data) {
+  const keys = Object.keys(data[0] || {});
+  return keys.find(k => k.toLowerCase().includes('sub')) || keys[2];
+}
+function getNameKey(data) {
+  const keys = Object.keys(data[0] || {});
+  return keys.find(k => k.toLowerCase().includes('company') || k.toLowerCase().includes('name')) || keys[0];
+}
+function getOwnerKey(data) {
+  const keys = Object.keys(data[0] || {});
+  return keys.find(k => k.toLowerCase().includes('owner')) || keys[4];
+}
+function getDateKey(data) {
+  const keys = Object.keys(data[0] || {});
+  return keys.find(k => k.toLowerCase().includes('date') || k.toLowerCase().includes('start')) || keys[3];
+}
+
+function populateFilters() {
+  const catKey = getCatKey(allData);
+  const subKey = getSubKey(allData);
+  const dateKey = getDateKey(allData);
+
+  const cats = [...new Set(allData.map(r => r[catKey]).filter(Boolean))].sort();
+  const subs = [...new Set(allData.map(r => r[subKey]).filter(Boolean))].sort();
+  const years = [...new Set(allData.map(r => {
+    const d = parseDate(r[dateKey]);
+    return d && !isNaN(d) ? d.getFullYear() : null;
+  }).filter(Boolean))].sort((a,b) => b - a);
+
+  const catSel = document.getElementById('categoryFilter');
+  cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; catSel.appendChild(o); });
+
+  const subSel = document.getElementById('subcategoryFilter');
+  subs.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; subSel.appendChild(o); });
+
+  const yrSel = document.getElementById('yearFilter');
+  years.forEach(y => { const o = document.createElement('option'); o.value = y; o.textContent = y; yrSel.appendChild(o); });
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const cat = document.getElementById('categoryFilter').value;
+  const sub = document.getElementById('subcategoryFilter').value;
+  const yr = document.getElementById('yearFilter').value;
+
+  const catKey = getCatKey(allData);
+  const subKey = getSubKey(allData);
+  const nameKey = getNameKey(allData);
+  const ownerKey = getOwnerKey(allData);
+  const dateKey = getDateKey(allData);
+
+  filtered = allData.filter(r => {
+    if (search && !((r[nameKey] || '').toLowerCase().includes(search) || (r[ownerKey] || '').toLowerCase().includes(search))) return false;
+    if (cat && r[catKey] !== cat) return false;
+    if (sub && r[subKey] !== sub) return false;
+    if (yr) {
+      const d = parseDate(r[dateKey]);
+      if (!d || isNaN(d) || d.getFullYear() !== parseInt(yr)) return false;
+    }
+    return true;
+  });
+
+  currentPage = 1;
+  renderStats();
+  renderCharts();
+  renderTable();
+}
+
+function renderStats() {
+  const nameKey = getNameKey(allData);
+  const catKey = getCatKey(allData);
+  const subKey = getSubKey(allData);
+  const dateKey = getDateKey(allData);
+
+  document.getElementById('statTotal').textContent = filtered.length;
+  document.getElementById('statCats').textContent = new Set(filtered.map(r => r[catKey]).filter(Boolean)).size;
+  document.getElementById('statSubs').textContent = new Set(filtered.map(r => r[subKey]).filter(Boolean)).size;
+
+  const sorted = [...filtered].filter(r => parseDate(r[dateKey]) && !isNaN(parseDate(r[dateKey]))).sort((a,b) => parseDate(b[dateKey]) - parseDate(a[dateKey]));
+  if (sorted.length) {
+    document.getElementById('statNewest').textContent = sorted[0][nameKey] || '—';
+    document.getElementById('statNewestDate').textContent = formatDate(sorted[0][dateKey]);
+  } else {
+    document.getElementById('statNewest').textContent = '—';
+  }
+}
+
+function renderCharts() {
+  const catKey = getCatKey(allData);
+  const subKey = getSubKey(allData);
+
+  const catCounts = countBy(filtered, catKey);
+  const catLabels = Object.keys(catCounts).sort((a,b) => catCounts[b] - catCounts[a]);
+  const catVals = catLabels.map(l => catCounts[l]);
+  const catColors = catLabels.map((_, i) => PALETTE[i % PALETTE.length]);
+
+  if (catChart) catChart.destroy();
+  catChart = new Chart(document.getElementById('catChart'), {
+    type: 'bar',
+    data: {
+      labels: catLabels,
+      datasets: [{ data: catVals, backgroundColor: catColors, borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} vendors` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'DM Sans', size: 11 }, color: '#888780' } },
+        y: { grid: { color: '#f0ede6' }, ticks: { font: { family: 'DM Mono', size: 11 }, color: '#888780', stepSize: 1 }, beginAtZero: true }
+      }
+    }
+  });
+
+  const legend = document.getElementById('catLegend');
+  legend.innerHTML = catLabels.map((l, i) =>
+    `<span class="legend-item"><span class="legend-dot" style="background:${catColors[i]}"></span>${l} (${catCounts[l]})</span>`
+  ).join('');
+
+  const subCounts = countBy(filtered, subKey);
+  const subLabels = Object.keys(subCounts).sort((a,b) => subCounts[b] - subCounts[a]).slice(0, 12);
+  const subVals = subLabels.map(l => subCounts[l]);
+
+  if (subChart) subChart.destroy();
+  subChart = new Chart(document.getElementById('subChart'), {
+    type: 'bar',
+    data: {
+      labels: subLabels,
+      datasets: [{ data: subVals, backgroundColor: '#2c2c2a', borderRadius: 3, borderSkipped: false, barThickness: 12 }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} vendors` } } },
+      scales: {
+        x: { grid: { color: '#f0ede6' }, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#888780', stepSize: 1 }, beginAtZero: true },
+        y: { grid: { display: false }, ticks: { font: { family: 'DM Sans', size: 11 }, color: '#888780' } }
+      }
+    }
+  });
+}
+
+function renderTable() {
+  const nameKey = getNameKey(allData);
+  const ownerKey = getOwnerKey(allData);
+  const catKey = getCatKey(allData);
+  const subKey = getSubKey(allData);
+  const dateKey = getDateKey(allData);
+
+  const allKeys = Object.keys(allData[0] || {});
+  const contactKey = allKeys.find(k => k.toLowerCase().includes('contact')) || '';
+
+  const total = filtered.length;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageData = filtered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('tableCount').textContent = `${total} vendor${total !== 1 ? 's' : ''}`;
+
+  if (!pageData.length) {
+    document.getElementById('tableBody').innerHTML = '<div class="no-data">No vendors match your filters.</div>';
+    document.getElementById('pagination').style.display = 'none';
+    return;
+  }
+
+  const catColors = {};
+  [...new Set(allData.map(r => r[catKey]))].forEach((c, i) => { catColors[c] = PALETTE[i % PALETTE.length]; });
+
+  const rows = pageData.map(r => {
+    const color = catColors[r[catKey]] || '#888780';
+    const lightColor = color + '22';
+    return `<tr>
+      <td style="font-weight:500">${r[nameKey] || '—'}</td>
+      <td>${r[ownerKey] || '—'}</td>
+      <td><span class="badge" style="background:${lightColor}; color:${color}">${r[catKey] || '—'}</span></td>
+      <td style="color:#5f5e5a">${r[subKey] || '—'}</td>
+      <td style="font-family:'DM Mono',monospace; font-size:0.75rem; color:#888780">${formatDate(r[dateKey]) || '—'}</td>
+      ${contactKey ? `<td style="color:#888780; font-size:0.78rem">${r[contactKey] || '—'}</td>` : ''}
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tableBody').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Owner</th>
+          <th>Category</th>
+          <th>Subcategory</th>
+          <th>Start date</th>
+          ${contactKey ? '<th>Contact</th>' : ''}
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  const pag = document.getElementById('pagination');
+  const pagInfo = document.getElementById('pagInfo');
+  const pagBtns = document.getElementById('pagBtns');
+
+  if (totalPages <= 1) { pag.style.display = 'none'; return; }
+
+  pag.style.display = 'flex';
+  pagInfo.textContent = `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, total)} of ${total}`;
+
+  let btns = `<button class="pag-btn" onclick="goPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1) {
+      btns += `<button class="pag-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+    } else if (Math.abs(i - currentPage) === 2) {
+      btns += `<span style="padding:4px 2px;color:#888780">…</span>`;
+    }
+  }
+  btns += `<button class="pag-btn" onclick="goPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
+  pagBtns.innerHTML = btns;
+}
+
+function goPage(p) {
+  const total = Math.ceil(filtered.length / PAGE_SIZE);
+  if (p < 1 || p > total) return;
+  currentPage = p;
+  renderTable();
+  document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
+    allData = parseCSV(text);
+    filtered = [...allData];
+
+    document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    populateFilters();
+    renderStats();
+    renderCharts();
+    renderTable();
+  } catch (e) {
+    document.getElementById('tableBody').innerHTML = '<div class="no-data">Could not load data. Make sure your Google Sheet is published.</div>';
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
