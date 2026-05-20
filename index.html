@@ -338,7 +338,8 @@
 </div>
 
 <script>
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=0&single=true&output=csv';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=0&single=true&output=csv';
+const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_URL);
 
 const PALETTE = ['#2c2c2a','#639922','#ba7517','#0f6e56','#993c1d','#185fa5','#993556','#534ab7','#636363'];
 const PAGE_SIZE = 15;
