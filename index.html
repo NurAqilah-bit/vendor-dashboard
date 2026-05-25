@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thryffy Vendor Directory</title>
+<title>Thryffy Vendor Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -28,6 +28,17 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
 .live-badge::before { content:''; width:5px; height:5px; background:var(--sky); border-radius:50%; animation:pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
 .updated-tag { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--slate-lt); background:var(--slate-xl); padding:4px 10px; border-radius:20px; border:1px solid var(--border); }
+
+/* TABS */
+.tab-bar { background:var(--white); border-bottom:1px solid var(--border); padding:0 2.5rem; display:flex; gap:0; }
+.tab-btn { padding:0 1.25rem; height:44px; border:none; background:none; font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-1px; transition:color 0.15s, border-color 0.15s; display:flex; align-items:center; gap:7px; }
+.tab-btn:hover { color:var(--navy); }
+.tab-btn.active { color:var(--sky-deep); border-bottom-color:var(--sky-deep); }
+.tab-icon { font-size:0.9rem; }
+
+/* PAGES */
+.tab-page { display:none; }
+.tab-page.active { display:block; }
 
 /* PAGE */
 .page { max-width:1280px; margin:0 auto; padding:2rem 2.5rem; }
@@ -82,13 +93,13 @@ input[type="text"] { min-width:210px; background:var(--white); }
 .cat-tile-pct { font-size:0.68rem; color:var(--slate-lt); margin-top:4px; font-weight:500; }
 
 /* TABLE */
-.table-card { background:var(--white); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.table-card { background:var(--white); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:1.75rem; }
 .table-card-header { display:flex; align-items:center; justify-content:space-between; padding:1.25rem 1.5rem; border-bottom:1px solid var(--border); }
 .table-card-title { font-size:0.88rem; font-weight:600; color:var(--navy); }
 .count-pill { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--sky-dark); background:var(--sky-xl); border:1px solid var(--sky-light); padding:3px 10px; border-radius:20px; }
 table { width:100%; border-collapse:collapse; font-size:0.82rem; }
 thead th { text-align:left; padding:9px 1.5rem; font-size:0.62rem; font-weight:600; text-transform:uppercase; letter-spacing:0.09em; color:var(--slate-lt); border-bottom:1px solid var(--border); background:var(--slate-xl); }
-tbody tr { border-bottom:1px solid #f8fafc; transition:background 0.1s; cursor:pointer; }
+tbody tr { border-bottom:1px solid #f8fafc; transition:background 0.1s; }
 tbody tr:last-child { border-bottom:none; }
 tbody tr:hover { background:var(--sky-xl); }
 tbody td { padding:11px 1.5rem; vertical-align:middle; }
@@ -100,6 +111,7 @@ tbody tr:hover .view-hint { opacity:1; }
 .sub-text { color:var(--muted); font-size:0.78rem; }
 .date-mono { font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--slate-lt); }
 .badge { display:inline-block; font-size:0.62rem; font-weight:600; padding:3px 10px; border-radius:20px; white-space:nowrap; letter-spacing:0.03em; }
+.clickable-row { cursor:pointer; }
 
 /* LOADING / PAGINATION */
 .loading { display:flex; align-items:center; justify-content:center; padding:4rem; color:var(--muted); font-size:0.82rem; gap:10px; }
@@ -113,12 +125,20 @@ tbody tr:hover .view-hint { opacity:1; }
 .pag-btn:disabled { opacity:0.35; cursor:default; }
 .pag-btn.active { background:var(--sky-deep); color:#fff; border-color:var(--sky-deep); }
 
+/* EVENT TILES */
+.event-tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; margin-bottom:1.75rem; }
+.event-tile { background:var(--white); border:1px solid var(--border); border-radius:12px; padding:1.1rem 1.25rem; border-top:3px solid var(--sky); transition:box-shadow 0.15s,transform 0.15s; }
+.event-tile:hover { box-shadow:0 4px 16px #0000080a; transform:translateY(-1px); }
+.event-tile-name { font-size:0.75rem; font-weight:700; color:var(--navy); margin-bottom:4px; }
+.event-tile-date { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--slate-lt); margin-bottom:8px; }
+.event-tile-count { font-size:1.8rem; font-weight:700; color:var(--sky-deep); letter-spacing:-0.03em; line-height:1; }
+.event-tile-label { font-size:0.65rem; color:var(--slate-lt); margin-top:2px; }
+
 /* MODAL */
 .modal-overlay { position:fixed; inset:0; background:rgba(15,23,42,0.45); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:999; padding:1.5rem; opacity:0; pointer-events:none; transition:opacity 0.2s; }
 .modal-overlay.open { opacity:1; pointer-events:all; }
 .modal { background:var(--white); border-radius:20px; width:100%; max-width:480px; box-shadow:0 24px 60px rgba(0,0,0,0.18); overflow:hidden; transform:translateY(16px) scale(0.98); transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1); max-height:90vh; overflow-y:auto; }
 .modal-overlay.open .modal { transform:translateY(0) scale(1); }
-
 .modal-hero { padding:2rem 2rem 1.5rem; display:flex; flex-direction:column; align-items:center; text-align:center; position:relative; }
 .modal-hero-bg { position:absolute; inset:0; opacity:0.07; }
 .modal-close { position:absolute; top:1rem; right:1rem; width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.9); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1rem; color:var(--slate); transition:background 0.15s; z-index:2; line-height:1; }
@@ -126,7 +146,6 @@ tbody tr:hover .view-hint { opacity:1; }
 .modal-avatar { width:72px; height:72px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:700; color:white; margin-bottom:1rem; position:relative; z-index:1; box-shadow:0 8px 24px rgba(0,0,0,0.15); }
 .modal-company { font-size:1.2rem; font-weight:700; color:var(--navy); letter-spacing:-0.02em; position:relative; z-index:1; }
 .modal-cat-badge { display:inline-block; font-size:0.65rem; font-weight:600; padding:4px 12px; border-radius:20px; margin-top:8px; letter-spacing:0.04em; text-transform:uppercase; position:relative; z-index:1; }
-
 .modal-body { padding:0 2rem 1.25rem; }
 .modal-divider { height:1px; background:var(--border); margin-bottom:1.25rem; }
 .modal-row { display:flex; align-items:flex-start; gap:12px; margin-bottom:1rem; }
@@ -134,8 +153,6 @@ tbody tr:hover .view-hint { opacity:1; }
 .modal-icon { width:34px; height:34px; border-radius:8px; background:var(--sky-xl); display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; border:1px solid var(--sky-light); }
 .modal-field-label { font-size:0.62rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--slate-lt); margin-bottom:2px; }
 .modal-field-value { font-size:0.88rem; font-weight:500; color:var(--navy); }
-
-/* EVENTS SECTION */
 .modal-events { padding:0 2rem 1.5rem; }
 .events-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
 .events-title { font-size:0.62rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--slate-lt); }
@@ -148,14 +165,14 @@ tbody tr:hover .view-hint { opacity:1; }
 .event-item-name { font-size:0.78rem; font-weight:600; color:var(--navy); }
 .event-item-date { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--slate-lt); }
 .no-events { font-size:0.78rem; color:var(--slate-lt); text-align:center; padding:1rem 0; font-style:italic; }
-
 .modal-footer { padding:0.875rem 2rem; border-top:1px solid var(--border); background:var(--slate-xl); font-size:0.7rem; color:var(--slate-lt); text-align:center; font-family:'DM Mono',monospace; }
 
-@media(max-width:600px){.page{padding:1.25rem;}.topnav{padding:0 1.25rem;}}
+@media(max-width:600px){.page{padding:1.25rem;}.topnav,.tab-bar{padding:0 1.25rem;}}
 </style>
 </head>
 <body>
 
+<!-- TOP NAV -->
 <nav class="topnav">
   <div class="nav-brand">
     <div class="nav-logo">T</div>
@@ -167,6 +184,20 @@ tbody tr:hover .view-hint { opacity:1; }
   </div>
 </nav>
 
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('vendors')" id="tab-vendors">
+    <span class="tab-icon">🏪</span> Vendors
+  </button>
+  <button class="tab-btn" onclick="switchTab('events')" id="tab-events">
+    <span class="tab-icon">🎪</span> Pop-up Events
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE 1 — VENDORS
+══════════════════════════════════════════ -->
+<div class="tab-page active" id="page-vendors">
 <div class="page">
   <div class="page-header">
     <div>
@@ -177,33 +208,33 @@ tbody tr:hover .view-hint { opacity:1; }
 
   <div class="filter-bar">
     <span style="color:var(--slate-lt);font-size:0.9rem">⌕</span>
-    <input type="text" id="searchInput" placeholder="Search company or owner..." oninput="applyFilters()">
+    <input type="text" id="v-search" placeholder="Search company or owner..." oninput="applyVendorFilters()">
     <div class="filter-divider"></div>
-    <select id="categoryFilter" onchange="applyFilters()"><option value="">All categories</option></select>
-    <select id="subcategoryFilter" onchange="applyFilters()"><option value="">All subcategories</option></select>
-    <select id="yearFilter" onchange="applyFilters()"><option value="">All years</option></select>
+    <select id="v-cat" onchange="applyVendorFilters()"><option value="">All categories</option></select>
+    <select id="v-sub" onchange="applyVendorFilters()"><option value="">All subcategories</option></select>
+    <select id="v-year" onchange="applyVendorFilters()"><option value="">All years</option></select>
   </div>
 
   <div class="stat-grid">
     <div class="stat-card primary">
       <div class="stat-label">Total vendors</div>
-      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-value" id="v-statTotal">—</div>
       <div class="stat-footer">in directory</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Categories</div>
-      <div class="stat-value" id="statCats">—</div>
+      <div class="stat-value" id="v-statCats">—</div>
       <div class="stat-footer">business types</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Subcategories</div>
-      <div class="stat-value" id="statSubs">—</div>
+      <div class="stat-value" id="v-statSubs">—</div>
       <div class="stat-footer">specialisations</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Newest vendor</div>
-      <div class="stat-value stat-value-sm" id="statNewest">—</div>
-      <div class="stat-footer" id="statNewestDate"></div>
+      <div class="stat-value stat-value-sm" id="v-statNewest">—</div>
+      <div class="stat-footer" id="v-statNewestDate"></div>
     </div>
   </div>
 
@@ -213,15 +244,15 @@ tbody tr:hover .view-hint { opacity:1; }
         <div><div class="card-title">Vendors by category</div><div class="card-sub">Count per business type</div></div>
         <span class="card-tag">Bar</span>
       </div>
-      <div class="chart-wrap"><canvas id="catChart"></canvas></div>
-      <div class="legend" id="catLegend"></div>
+      <div class="chart-wrap"><canvas id="v-catChart"></canvas></div>
+      <div class="legend" id="v-catLegend"></div>
     </div>
     <div class="chart-card">
       <div class="card-header">
         <div><div class="card-title">Vendors by subcategory</div><div class="card-sub">Top subcategory breakdown</div></div>
         <span class="card-tag">Horizontal</span>
       </div>
-      <div class="chart-wrap"><canvas id="subChart"></canvas></div>
+      <div class="chart-wrap"><canvas id="v-subChart"></canvas></div>
     </div>
   </div>
 
@@ -229,24 +260,114 @@ tbody tr:hover .view-hint { opacity:1; }
     <span class="section-title">Category breakdown</span>
     <div class="section-line"></div>
   </div>
-  <div class="cat-grid" id="catGrid"></div>
+  <div class="cat-grid" id="v-catGrid"></div>
 
   <div class="table-card">
     <div class="table-card-header">
       <span class="table-card-title">All vendors</span>
-      <span class="count-pill" id="tableCount"></span>
+      <span class="count-pill" id="v-tableCount"></span>
     </div>
-    <div id="tableBody"><div class="loading"><div class="spinner"></div> Loading vendor data...</div></div>
-    <div class="pagination" id="pagination" style="display:none;">
-      <span id="pagInfo"></span>
-      <div class="pag-btns" id="pagBtns"></div>
+    <div id="v-tableBody"><div class="loading"><div class="spinner"></div> Loading vendor data...</div></div>
+    <div class="pagination" id="v-pagination" style="display:none;">
+      <span id="v-pagInfo"></span>
+      <div class="pag-btns" id="v-pagBtns"></div>
     </div>
   </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE 2 — EVENTS
+══════════════════════════════════════════ -->
+<div class="tab-page" id="page-events">
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Pop-up Events</div>
+      <div class="page-subtitle">Overview of all pop-up attendance and vendor activity</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <span style="color:var(--slate-lt);font-size:0.9rem">⌕</span>
+    <input type="text" id="e-search" placeholder="Search vendor or event name..." oninput="applyEventFilters()">
+    <div class="filter-divider"></div>
+    <select id="e-event" onchange="applyEventFilters()"><option value="">All pop-ups</option></select>
+    <select id="e-year" onchange="applyEventFilters()"><option value="">All years</option></select>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card primary">
+      <div class="stat-label">Total pop-ups</div>
+      <div class="stat-value" id="e-statTotal">—</div>
+      <div class="stat-footer">events held</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Vendor appearances</div>
+      <div class="stat-value" id="e-statAppearances">—</div>
+      <div class="stat-footer">total slots filled</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg vendors/event</div>
+      <div class="stat-value" id="e-statAvg">—</div>
+      <div class="stat-footer">per pop-up</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Most active vendor</div>
+      <div class="stat-value stat-value-sm" id="e-statTop">—</div>
+      <div class="stat-footer" id="e-statTopCount"></div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="card-header">
+        <div><div class="card-title">Vendors per pop-up</div><div class="card-sub">How many vendors joined each event</div></div>
+        <span class="card-tag">Bar</span>
+      </div>
+      <div class="chart-wrap"><canvas id="e-perEventChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-header">
+        <div><div class="card-title">Most frequent vendors</div><div class="card-sub">Vendors who attend the most pop-ups</div></div>
+        <span class="card-tag">Horizontal</span>
+      </div>
+      <div class="chart-wrap"><canvas id="e-topVendorsChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span class="section-title">Pop-up breakdown</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="event-tiles" id="e-eventTiles"></div>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <span class="table-card-title">Vendors per pop-up</span>
+      <span class="count-pill" id="e-popupCount"></span>
+    </div>
+    <div id="e-popupTableBody"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <span class="table-card-title">All vendor appearances</span>
+      <span class="count-pill" id="e-appearanceCount"></span>
+    </div>
+    <div id="e-appearanceTableBody"><div class="loading"><div class="spinner"></div> Loading...</div></div>
+    <div class="pagination" id="e-pagination" style="display:none;">
+      <span id="e-pagInfo"></span>
+      <div class="pag-btns" id="e-pagBtns"></div>
+    </div>
+  </div>
+
+</div>
 </div>
 
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
-  <div class="modal" id="modal">
+  <div class="modal">
     <div class="modal-hero" id="modalHero">
       <div class="modal-hero-bg" id="modalHeroBg"></div>
       <button class="modal-close" onclick="closeModal()">✕</button>
@@ -296,334 +417,326 @@ const PALETTE_BG  = ['#f0f9ff','#e0f2fe','#f0f9ff','#e0f2fe','#f1f5f9','#f8fafc'
 const PALETTE_TXT = ['#0284c7','#0369a1','#0284c7','#0369a1','#475569','#475569','#0f766e','#1d4ed8'];
 
 const PAGE_SIZE = 15;
-let allData = [], filtered = [], eventsData = [];
-let catChart, subChart, currentPage = 1;
+let allVendors=[], filteredVendors=[], allEvents=[], filteredEvents=[];
+let vCatChart, vSubChart, ePerEventChart, eTopVendorsChart;
+let vPage=1, ePage=1;
+
+/* ── TAB SWITCHING ── */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  if (tab==='events') { setTimeout(()=>{ renderEventCharts(); }, 50); }
+}
 
 /* ── CSV PARSER ── */
 function parseCSV(text) {
   const lines = text.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  return lines.slice(1).map(line => {
-    const cols = []; let cur = '', inQ = false;
+  const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+  return lines.slice(1).map(line=>{
+    const cols=[]; let cur='', inQ=false;
     for (let ch of line) {
-      if (ch === '"') inQ = !inQ;
-      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-      else cur += ch;
+      if (ch==='"') inQ=!inQ;
+      else if (ch===','&&!inQ) { cols.push(cur.trim()); cur=''; }
+      else cur+=ch;
     }
     cols.push(cur.trim());
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = (cols[i] || '').replace(/^"|"$/g, '').trim());
+    const obj={};
+    headers.forEach((h,i)=>obj[h]=(cols[i]||'').replace(/^"|"$/g,'').trim());
     return obj;
-  }).filter(r => r[headers[0]]);
+  }).filter(r=>r[headers[0]]);
 }
 
-/* ── HELPERS ── */
+/* ── DATE HELPERS ── */
 function parseDate(str) {
   if (!str) return null;
   const p = str.split('/');
-  if (p.length === 2) {
-    // MM/YY format e.g. 01/25 → January 2025
-    let [m, y] = p;
-    if (y.length === 2) y = '20' + y;
-    return new Date(y + '-' + m.padStart(2,'0') + '-01');
+  if (p.length===2) {
+    let [m,y]=p; if(y.length===2) y='20'+y;
+    return new Date(y+'-'+m.padStart(2,'0')+'-01');
   }
-  if (p.length === 3) {
-    let [d, m, y] = p;
-    if (y.length === 2) y = '20' + y;
-    return new Date(y + '-' + m.padStart(2,'0') + '-' + d.padStart(2,'0'));
+  if (p.length===3) {
+    let [d,m,y]=p; if(y.length===2) y='20'+y;
+    return new Date(y+'-'+m.padStart(2,'0')+'-'+d.padStart(2,'0'));
   }
   return new Date(str);
 }
 function formatDate(str) {
   if (!str) return '—';
-  const p = str.split('/');
-  if (p.length === 2) {
-    const d = parseDate(str);
-    if (!d || isNaN(d)) return str;
-    return d.toLocaleDateString('en-GB', {month:'short', year:'numeric'});
-  }
-  const d = parseDate(str);
-  if (!d || isNaN(d)) return str || '—';
-  return d.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+  const p=str.split('/');
+  if (p.length===2) { const d=parseDate(str); return (!d||isNaN(d))?str:d.toLocaleDateString('en-GB',{month:'short',year:'numeric'}); }
+  const d=parseDate(str);
+  return (!d||isNaN(d))?(str||'—'):d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
 }
-function countBy(arr, key) {
-  const c = {};
-  arr.forEach(r => { const v = r[key] || 'Unknown'; c[v] = (c[v]||0)+1; });
-  return c;
-}
-function getInitials(name) {
-  if (!name) return '?';
-  const p = name.trim().split(/\s+/);
-  return p.length >= 2 ? (p[0][0]+p[1][0]).toUpperCase() : name.slice(0,2).toUpperCase();
-}
+function countBy(arr,key) { const c={}; arr.forEach(r=>{const v=r[key]||'Unknown';c[v]=(c[v]||0)+1;}); return c; }
+function getInitials(name) { if(!name) return '?'; const p=name.trim().split(/\s+/); return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():name.slice(0,2).toUpperCase(); }
 
 /* ── KEY DETECTORS ── */
-const getCatKey = d => { const k=Object.keys(d[0]||{}); return k.find(x=>x.toLowerCase().includes('category')&&!x.toLowerCase().includes('sub'))||k[1]; };
-const getSubKey = d => { const k=Object.keys(d[0]||{}); return k.find(x=>x.toLowerCase().includes('sub'))||k[2]; };
-const getNameKey = d => { const k=Object.keys(d[0]||{}); return k.find(x=>x.toLowerCase().includes('company')||x.toLowerCase().includes('name'))||k[0]; };
-const getOwnerKey = d => { const k=Object.keys(d[0]||{}); return k.find(x=>x.toLowerCase().includes('owner'))||k[4]; };
-const getDateKey = d => { const k=Object.keys(d[0]||{}); return k.find(x=>x.toLowerCase().includes('date')||x.toLowerCase().includes('start'))||k[3]; };
-const getContactKey = d => { const k=Object.keys(d[0]||{}); return k.find(x=>x.toLowerCase().includes('contact'))||''; };
+const getCatKey  = d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('category')&&!x.toLowerCase().includes('sub'))||k[1];};
+const getSubKey  = d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('sub'))||k[2];};
+const getNameKey = d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('company')||x.toLowerCase().includes('name'))||k[0];};
+const getOwnerKey= d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('owner'))||k[4];};
+const getDateKey = d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('date')||x.toLowerCase().includes('start'))||k[3];};
+const getContactKey=d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('contact'))||'';};
+const getEvNameKey =d=>{const k=Object.keys(d[0]||{});return k.find(x=>{const l=x.toLowerCase();return(l.includes('pop')||l.includes('event')||l.includes('name'))&&!l.includes('company');})||k[1]||'';};
+const getEvDateKey =d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('date'))||k[2]||'';};
+const getEvVendorKey=d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('company')||x.toLowerCase().includes('vendor')||x.toLowerCase().includes('name'))||k[0];};
 
 function buildColorMap() {
-  const ck = getCatKey(allData); const map = {};
-  [...new Set(allData.map(r=>r[ck]))].forEach((c,i) => { map[c] = i % PALETTE.length; });
+  const ck=getCatKey(allVendors); const map={};
+  [...new Set(allVendors.map(r=>r[ck]))].forEach((c,i)=>{map[c]=i%PALETTE.length;});
   return map;
 }
 
-/* ── FILTERS ── */
-function populateFilters() {
-  const ck=getCatKey(allData), sk=getSubKey(allData), dk=getDateKey(allData);
-  const cats=[...new Set(allData.map(r=>r[ck]).filter(Boolean))].sort();
-  const subs=[...new Set(allData.map(r=>r[sk]).filter(Boolean))].sort();
-  const years=[...new Set(allData.map(r=>{ const d=parseDate(r[dk]); return d&&!isNaN(d)?d.getFullYear():null; }).filter(Boolean))].sort((a,b)=>b-a);
-  const cs=document.getElementById('categoryFilter');
-  cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; cs.appendChild(o); });
-  const ss=document.getElementById('subcategoryFilter');
-  subs.forEach(s=>{ const o=document.createElement('option'); o.value=s; o.textContent=s; ss.appendChild(o); });
-  const ys=document.getElementById('yearFilter');
-  years.forEach(y=>{ const o=document.createElement('option'); o.value=y; o.textContent=y; ys.appendChild(o); });
+/* ══════════════════════════
+   VENDOR TAB
+══════════════════════════ */
+function populateVendorFilters() {
+  const ck=getCatKey(allVendors), sk=getSubKey(allVendors), dk=getDateKey(allVendors);
+  const cats=[...new Set(allVendors.map(r=>r[ck]).filter(Boolean))].sort();
+  const subs=[...new Set(allVendors.map(r=>r[sk]).filter(Boolean))].sort();
+  const years=[...new Set(allVendors.map(r=>{const d=parseDate(r[dk]);return d&&!isNaN(d)?d.getFullYear():null;}).filter(Boolean))].sort((a,b)=>b-a);
+  const cs=document.getElementById('v-cat');
+  cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o);});
+  const ss=document.getElementById('v-sub');
+  subs.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;ss.appendChild(o);});
+  const ys=document.getElementById('v-year');
+  years.forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;ys.appendChild(o);});
 }
 
-function applyFilters() {
-  const search=document.getElementById('searchInput').value.toLowerCase();
-  const cat=document.getElementById('categoryFilter').value;
-  const sub=document.getElementById('subcategoryFilter').value;
-  const yr=document.getElementById('yearFilter').value;
-  const ck=getCatKey(allData), sk=getSubKey(allData), nk=getNameKey(allData), ok=getOwnerKey(allData), dk=getDateKey(allData);
-  filtered = allData.filter(r => {
-    if (search && !((r[nk]||'').toLowerCase().includes(search)||(r[ok]||'').toLowerCase().includes(search))) return false;
-    if (cat && r[ck]!==cat) return false;
-    if (sub && r[sk]!==sub) return false;
-    if (yr) { const d=parseDate(r[dk]); if (!d||isNaN(d)||d.getFullYear()!==parseInt(yr)) return false; }
+function applyVendorFilters() {
+  const search=document.getElementById('v-search').value.toLowerCase();
+  const cat=document.getElementById('v-cat').value;
+  const sub=document.getElementById('v-sub').value;
+  const yr=document.getElementById('v-year').value;
+  const ck=getCatKey(allVendors),sk=getSubKey(allVendors),nk=getNameKey(allVendors),ok=getOwnerKey(allVendors),dk=getDateKey(allVendors);
+  filteredVendors=allVendors.filter(r=>{
+    if(search&&!((r[nk]||'').toLowerCase().includes(search)||(r[ok]||'').toLowerCase().includes(search))) return false;
+    if(cat&&r[ck]!==cat) return false;
+    if(sub&&r[sk]!==sub) return false;
+    if(yr){const d=parseDate(r[dk]);if(!d||isNaN(d)||d.getFullYear()!==parseInt(yr)) return false;}
     return true;
   });
-  currentPage = 1;
-  renderStats(); renderCharts(); renderCatGrid(); renderTable();
+  vPage=1;
+  renderVendorStats(); renderVendorCharts(); renderCatGrid(); renderVendorTable();
 }
 
-/* ── STATS ── */
-function renderStats() {
-  const ck=getCatKey(allData), sk=getSubKey(allData), nk=getNameKey(allData), dk=getDateKey(allData);
-  document.getElementById('statTotal').textContent = filtered.length;
-  document.getElementById('statCats').textContent = new Set(filtered.map(r=>r[ck]).filter(Boolean)).size;
-  document.getElementById('statSubs').textContent = new Set(filtered.map(r=>r[sk]).filter(Boolean)).size;
-  const sorted = [...filtered].filter(r=>parseDate(r[dk])&&!isNaN(parseDate(r[dk]))).sort((a,b)=>parseDate(b[dk])-parseDate(a[dk]));
-  if (sorted.length) {
-    document.getElementById('statNewest').textContent = sorted[0][nk] || '—';
-    document.getElementById('statNewestDate').textContent = formatDate(sorted[0][dk]);
-  }
+function renderVendorStats() {
+  const ck=getCatKey(allVendors),sk=getSubKey(allVendors),nk=getNameKey(allVendors),dk=getDateKey(allVendors);
+  document.getElementById('v-statTotal').textContent=filteredVendors.length;
+  document.getElementById('v-statCats').textContent=new Set(filteredVendors.map(r=>r[ck]).filter(Boolean)).size;
+  document.getElementById('v-statSubs').textContent=new Set(filteredVendors.map(r=>r[sk]).filter(Boolean)).size;
+  const sorted=[...filteredVendors].filter(r=>parseDate(r[dk])&&!isNaN(parseDate(r[dk]))).sort((a,b)=>parseDate(b[dk])-parseDate(a[dk]));
+  if(sorted.length){document.getElementById('v-statNewest').textContent=sorted[0][nk]||'—';document.getElementById('v-statNewestDate').textContent=formatDate(sorted[0][dk]);}
 }
 
-/* ── CHARTS ── */
-function renderCharts() {
-  const ck=getCatKey(allData), sk=getSubKey(allData);
-  const cm=buildColorMap();
-  const catCounts=countBy(filtered,ck);
+function renderVendorCharts() {
+  const ck=getCatKey(allVendors),sk=getSubKey(allVendors),cm=buildColorMap();
+  const catCounts=countBy(filteredVendors,ck);
   const catLabels=Object.keys(catCounts).sort((a,b)=>catCounts[b]-catCounts[a]);
   const catColors=catLabels.map(l=>PALETTE[cm[l]??0]);
-
-  if (catChart) catChart.destroy();
-  catChart = new Chart(document.getElementById('catChart'), {
-    type:'bar',
-    data:{labels:catLabels, datasets:[{data:catLabels.map(l=>catCounts[l]), backgroundColor:catColors, borderRadius:6, borderSkipped:false}]},
-    options:{responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw} vendors`}, backgroundColor:'#fff', titleColor:'#1e293b', bodyColor:'#64748b', borderColor:'#e2e8f0', borderWidth:1, padding:10, cornerRadius:8}},
-      scales:{x:{grid:{display:false}, ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}}, y:{grid:{color:'#f1f5f9'}, ticks:{font:{family:'DM Mono',size:11},color:'#94a3b8',stepSize:1}, beginAtZero:true}}}
-  });
-
-  document.getElementById('catLegend').innerHTML = catLabels.map((l,i) =>
-    `<span class="legend-item"><span class="legend-dot" style="background:${catColors[i]}"></span>${l} (${catCounts[l]})</span>`
-  ).join('');
-
-  const subCounts=countBy(filtered,sk);
+  if(vCatChart) vCatChart.destroy();
+  vCatChart=new Chart(document.getElementById('v-catChart'),{type:'bar',data:{labels:catLabels,datasets:[{data:catLabels.map(l=>catCounts[l]),backgroundColor:catColors,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} vendors`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:11},color:'#94a3b8',stepSize:1},beginAtZero:true}}}});
+  document.getElementById('v-catLegend').innerHTML=catLabels.map((l,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${catColors[i]}"></span>${l} (${catCounts[l]})</span>`).join('');
+  const subCounts=countBy(filteredVendors,sk);
   const subLabels=Object.keys(subCounts).sort((a,b)=>subCounts[b]-subCounts[a]).slice(0,12);
   const subColors=subLabels.map((_,i)=>PALETTE[i%PALETTE.length]);
-
-  if (subChart) subChart.destroy();
-  subChart = new Chart(document.getElementById('subChart'), {
-    type:'bar',
-    data:{labels:subLabels, datasets:[{data:subLabels.map(l=>subCounts[l]), backgroundColor:subColors, borderRadius:5, borderSkipped:false, barThickness:14}]},
-    options:{indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.raw} vendors`}, backgroundColor:'#fff', titleColor:'#1e293b', bodyColor:'#64748b', borderColor:'#e2e8f0', borderWidth:1, padding:10, cornerRadius:8}},
-      scales:{x:{grid:{color:'#f1f5f9'}, ticks:{font:{family:'DM Mono',size:10},color:'#94a3b8',stepSize:1}, beginAtZero:true}, y:{grid:{display:false}, ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}}}}
-  });
+  if(vSubChart) vSubChart.destroy();
+  vSubChart=new Chart(document.getElementById('v-subChart'),{type:'bar',data:{labels:subLabels,datasets:[{data:subLabels.map(l=>subCounts[l]),backgroundColor:subColors,borderRadius:5,borderSkipped:false,barThickness:14}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} vendors`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:10},color:'#94a3b8',stepSize:1},beginAtZero:true},y:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}}}}});
 }
 
-/* ── CAT GRID ── */
 function renderCatGrid() {
-  const ck=getCatKey(allData); const cm=buildColorMap();
-  const counts=countBy(filtered,ck); const total=filtered.length||1;
-  document.getElementById('catGrid').innerHTML = Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([name,count]) => {
+  const ck=getCatKey(allVendors),cm=buildColorMap();
+  const counts=countBy(filteredVendors,ck);const total=filteredVendors.length||1;
+  document.getElementById('v-catGrid').innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([name,count])=>{
     const ci=cm[name]??0;
-    return `<div class="cat-tile" style="border-left-color:${PALETTE[ci]}">
-      <div class="cat-tile-name" style="color:${PALETTE_TXT[ci]}">${name}</div>
-      <div class="cat-tile-count" style="color:${PALETTE[ci]}">${count}</div>
-      <div class="cat-tile-pct">${Math.round((count/total)*100)}% of total</div>
-    </div>`;
+    return `<div class="cat-tile" style="border-left-color:${PALETTE[ci]}"><div class="cat-tile-name" style="color:${PALETTE_TXT[ci]}">${name}</div><div class="cat-tile-count" style="color:${PALETTE[ci]}">${count}</div><div class="cat-tile-pct">${Math.round((count/total)*100)}% of total</div></div>`;
   }).join('');
 }
 
-/* ── TABLE ── */
-function renderTable() {
-  const nk=getNameKey(allData), ok=getOwnerKey(allData), ck=getCatKey(allData), sk=getSubKey(allData), dk=getDateKey(allData);
-  const cm=buildColorMap();
-  const total=filtered.length;
+function renderVendorTable() {
+  const nk=getNameKey(allVendors),ok=getOwnerKey(allVendors),ck=getCatKey(allVendors),sk=getSubKey(allVendors),dk=getDateKey(allVendors),cm=buildColorMap();
+  const total=filteredVendors.length;
   const totalPages=Math.ceil(total/PAGE_SIZE);
-  const start=(currentPage-1)*PAGE_SIZE;
-  const pageData=filtered.slice(start,start+PAGE_SIZE);
-
-  document.getElementById('tableCount').textContent = `${total} vendor${total!==1?'s':''}`;
-
-  if (!pageData.length) {
-    document.getElementById('tableBody').innerHTML='<div class="no-data">No vendors match your filters.</div>';
-    document.getElementById('pagination').style.display='none';
-    return;
-  }
-
-  document.getElementById('tableBody').innerHTML = `
-    <table><thead><tr>
-      <th>Company</th><th>Owner</th><th>Category</th><th>Subcategory</th><th>Start date</th>
-    </tr></thead><tbody>
-    ${pageData.map(r => {
-      const ci=cm[r[ck]]??0;
-      const idx=allData.indexOf(r);
-      return `<tr onclick="openModal(${idx})">
-        <td><div class="co-name-wrap">
-          <div class="co-avatar" style="background:${PALETTE[ci]}">${getInitials(r[nk])}</div>
-          <div><div class="co-name">${r[nk]||'—'}</div><div class="view-hint">Click to view profile →</div></div>
-        </div></td>
-        <td class="sub-text">${r[ok]||'—'}</td>
-        <td><span class="badge" style="background:${PALETTE_BG[ci]};color:${PALETTE_TXT[ci]}">${r[ck]||'—'}</span></td>
-        <td class="sub-text">${r[sk]||'—'}</td>
-        <td class="date-mono">${formatDate(r[dk])}</td>
-      </tr>`;
-    }).join('')}
-    </tbody></table>`;
-
-  const pag=document.getElementById('pagination');
-  if (totalPages<=1) { pag.style.display='none'; return; }
+  const start=(vPage-1)*PAGE_SIZE;
+  const pageData=filteredVendors.slice(start,start+PAGE_SIZE);
+  document.getElementById('v-tableCount').textContent=`${total} vendor${total!==1?'s':''}`;
+  if(!pageData.length){document.getElementById('v-tableBody').innerHTML='<div class="no-data">No vendors match your filters.</div>';document.getElementById('v-pagination').style.display='none';return;}
+  document.getElementById('v-tableBody').innerHTML=`<table><thead><tr><th>Company</th><th>Owner</th><th>Category</th><th>Subcategory</th><th>Start date</th></tr></thead><tbody>${pageData.map(r=>{const ci=cm[r[ck]]??0;const idx=allVendors.indexOf(r);return `<tr class="clickable-row" onclick="openModal(${idx})"><td><div class="co-name-wrap"><div class="co-avatar" style="background:${PALETTE[ci]}">${getInitials(r[nk])}</div><div><div class="co-name">${r[nk]||'—'}</div><div class="view-hint">Click to view profile →</div></div></div></td><td class="sub-text">${r[ok]||'—'}</td><td><span class="badge" style="background:${PALETTE_BG[ci]};color:${PALETTE_TXT[ci]}">${r[ck]||'—'}</span></td><td class="sub-text">${r[sk]||'—'}</td><td class="date-mono">${formatDate(r[dk])}</td></tr>`;}).join('')}</tbody></table>`;
+  const pag=document.getElementById('v-pagination');
+  if(totalPages<=1){pag.style.display='none';return;}
   pag.style.display='flex';
-  document.getElementById('pagInfo').textContent=`Showing ${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total}`;
-  let btns=`<button class="pag-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>←</button>`;
-  for (let i=1;i<=totalPages;i++) {
-    if (i===1||i===totalPages||Math.abs(i-currentPage)<=1)
-      btns+=`<button class="pag-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
-    else if (Math.abs(i-currentPage)===2)
-      btns+=`<span style="padding:4px;color:#cbd5e1">…</span>`;
-  }
-  btns+=`<button class="pag-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>→</button>`;
-  document.getElementById('pagBtns').innerHTML=btns;
+  document.getElementById('v-pagInfo').textContent=`Showing ${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total}`;
+  let btns=`<button class="pag-btn" onclick="vGoPage(${vPage-1})" ${vPage===1?'disabled':''}>←</button>`;
+  for(let i=1;i<=totalPages;i++){if(i===1||i===totalPages||Math.abs(i-vPage)<=1)btns+=`<button class="pag-btn ${i===vPage?'active':''}" onclick="vGoPage(${i})">${i}</button>`;else if(Math.abs(i-vPage)===2)btns+=`<span style="padding:4px;color:#cbd5e1">…</span>`;}
+  btns+=`<button class="pag-btn" onclick="vGoPage(${vPage+1})" ${vPage===totalPages?'disabled':''}>→</button>`;
+  document.getElementById('v-pagBtns').innerHTML=btns;
+}
+function vGoPage(p){const total=Math.ceil(filteredVendors.length/PAGE_SIZE);if(p<1||p>total)return;vPage=p;renderVendorTable();document.querySelector('#page-vendors .table-card').scrollIntoView({behavior:'smooth',block:'start'});}
+
+/* ══════════════════════════
+   EVENTS TAB
+══════════════════════════ */
+function populateEventFilters() {
+  const evnk=getEvNameKey(allEvents), evdk=getEvDateKey(allEvents);
+  const events=[...new Set(allEvents.map(r=>r[evnk]).filter(Boolean))].sort();
+  const years=[...new Set(allEvents.map(r=>{const d=parseDate(r[evdk]);return d&&!isNaN(d)?d.getFullYear():null;}).filter(Boolean))].sort((a,b)=>b-a);
+  const es=document.getElementById('e-event');
+  events.forEach(e=>{const o=document.createElement('option');o.value=e;o.textContent=e;es.appendChild(o);});
+  const ys=document.getElementById('e-year');
+  years.forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;ys.appendChild(o);});
 }
 
-function goPage(p) {
-  const total=Math.ceil(filtered.length/PAGE_SIZE);
-  if (p<1||p>total) return;
-  currentPage=p; renderTable();
-  document.querySelector('.table-card').scrollIntoView({behavior:'smooth',block:'start'});
+function applyEventFilters() {
+  const search=document.getElementById('e-search').value.toLowerCase();
+  const ev=document.getElementById('e-event').value;
+  const yr=document.getElementById('e-year').value;
+  const evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents),evvk=getEvVendorKey(allEvents);
+  filteredEvents=allEvents.filter(r=>{
+    if(search&&!((r[evvk]||'').toLowerCase().includes(search)||(r[evnk]||'').toLowerCase().includes(search))) return false;
+    if(ev&&r[evnk]!==ev) return false;
+    if(yr){const d=parseDate(r[evdk]);if(!d||isNaN(d)||d.getFullYear()!==parseInt(yr)) return false;}
+    return true;
+  });
+  ePage=1;
+  renderEventStats(); renderEventCharts(); renderEventTiles(); renderEventTables();
 }
+
+function renderEventStats() {
+  const evnk=getEvNameKey(allEvents),evvk=getEvVendorKey(allEvents);
+  const uniqueEvents=new Set(filteredEvents.map(r=>r[evnk]).filter(Boolean));
+  document.getElementById('e-statTotal').textContent=uniqueEvents.size;
+  document.getElementById('e-statAppearances').textContent=filteredEvents.length;
+  document.getElementById('e-statAvg').textContent=uniqueEvents.size>0?Math.round(filteredEvents.length/uniqueEvents.size):'—';
+  const vendorCounts=countBy(filteredEvents,evvk);
+  const topVendor=Object.entries(vendorCounts).sort((a,b)=>b[1]-a[1])[0];
+  if(topVendor){document.getElementById('e-statTop').textContent=topVendor[0];document.getElementById('e-statTopCount').textContent=`${topVendor[1]} pop-up${topVendor[1]!==1?'s':''} attended`;}
+}
+
+function renderEventCharts() {
+  const evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents),evvk=getEvVendorKey(allEvents);
+  // Vendors per event
+  const evCounts=countBy(filteredEvents,evnk);
+  const evLabels=Object.keys(evCounts).sort((a,b)=>{
+    const ra=filteredEvents.find(r=>r[evnk]===a),rb=filteredEvents.find(r=>r[evnk]===b);
+    const da=parseDate(ra?ra[evdk]:''),db=parseDate(rb?rb[evdk]:'');
+    return (da&&db)?da-db:0;
+  });
+  if(ePerEventChart) ePerEventChart.destroy();
+  ePerEventChart=new Chart(document.getElementById('e-perEventChart'),{type:'bar',data:{labels:evLabels,datasets:[{data:evLabels.map(l=>evCounts[l]),backgroundColor:'#38bdf8',borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} vendors`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{family:'Inter',size:10,weight:'500'},color:'#94a3b8',maxRotation:30}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:11},color:'#94a3b8',stepSize:1},beginAtZero:true}}}});
+  // Top vendors
+  const vendorCounts=countBy(filteredEvents,evvk);
+  const topLabels=Object.keys(vendorCounts).sort((a,b)=>vendorCounts[b]-vendorCounts[a]).slice(0,12);
+  const topColors=topLabels.map((_,i)=>PALETTE[i%PALETTE.length]);
+  if(eTopVendorsChart) eTopVendorsChart.destroy();
+  eTopVendorsChart=new Chart(document.getElementById('e-topVendorsChart'),{type:'bar',data:{labels:topLabels,datasets:[{data:topLabels.map(l=>vendorCounts[l]),backgroundColor:topColors,borderRadius:5,borderSkipped:false,barThickness:14}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} pop-up${ctx.raw!==1?'s':''}`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:10},color:'#94a3b8',stepSize:1},beginAtZero:true},y:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}}}}});
+}
+
+function renderEventTiles() {
+  const evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents);
+  const evCounts=countBy(filteredEvents,evnk);
+  const evDates={};
+  filteredEvents.forEach(r=>{ if(!evDates[r[evnk]]) evDates[r[evnk]]=r[evdk]; });
+  const sorted=Object.entries(evCounts).sort((a,b)=>{const da=parseDate(evDates[a[0]]),db=parseDate(evDates[b[0]]);return (da&&db)?db-da:0;});
+  document.getElementById('e-eventTiles').innerHTML=sorted.map(([name,count])=>`
+    <div class="event-tile">
+      <div class="event-tile-name">${name}</div>
+      <div class="event-tile-date">${formatDate(evDates[name])}</div>
+      <div class="event-tile-count">${count}</div>
+      <div class="event-tile-label">vendor${count!==1?'s':''} attended</div>
+    </div>`).join('');
+}
+
+function renderEventTables() {
+  const evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents),evvk=getEvVendorKey(allEvents);
+
+  // Table 1: vendors per pop-up
+  const evCounts=countBy(filteredEvents,evnk);
+  const evDates={};
+  filteredEvents.forEach(r=>{ if(!evDates[r[evnk]]) evDates[r[evnk]]=r[evdk]; });
+  const sortedEvents=Object.entries(evCounts).sort((a,b)=>{const da=parseDate(evDates[a[0]]),db=parseDate(evDates[b[0]]);return (da&&db)?db-da:0;});
+  document.getElementById('e-popupCount').textContent=`${sortedEvents.length} pop-up${sortedEvents.length!==1?'s':''}`;
+  document.getElementById('e-popupTableBody').innerHTML=sortedEvents.length===0?'<div class="no-data">No events found.</div>':`
+    <table><thead><tr><th>Pop-up name</th><th>Date</th><th>Vendors attended</th></tr></thead>
+    <tbody>${sortedEvents.map(([name,count])=>`<tr>
+      <td class="co-name">${name}</td>
+      <td class="date-mono">${formatDate(evDates[name])}</td>
+      <td><span class="badge" style="background:var(--sky-xl);color:var(--sky-dark)">${count} vendor${count!==1?'s':''}</span></td>
+    </tr>`).join('')}</tbody></table>`;
+
+  // Table 2: all appearances
+  const sorted=[...filteredEvents].sort((a,b)=>{const da=parseDate(a[evdk]),db=parseDate(b[evdk]);return (da&&db)?db-da:0;});
+  const total=sorted.length;
+  const totalPages=Math.ceil(total/PAGE_SIZE);
+  const start=(ePage-1)*PAGE_SIZE;
+  const pageData=sorted.slice(start,start+PAGE_SIZE);
+  document.getElementById('e-appearanceCount').textContent=`${total} appearance${total!==1?'s':''}`;
+  document.getElementById('e-appearanceTableBody').innerHTML=pageData.length===0?'<div class="no-data">No appearances found.</div>':`
+    <table><thead><tr><th>Vendor</th><th>Pop-up name</th><th>Date</th></tr></thead>
+    <tbody>${pageData.map(r=>`<tr>
+      <td class="co-name">${r[evvk]||'—'}</td>
+      <td class="sub-text">${r[evnk]||'—'}</td>
+      <td class="date-mono">${formatDate(r[evdk])}</td>
+    </tr>`).join('')}</tbody></table>`;
+
+  const pag=document.getElementById('e-pagination');
+  if(totalPages<=1){pag.style.display='none';return;}
+  pag.style.display='flex';
+  document.getElementById('e-pagInfo').textContent=`Showing ${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total}`;
+  let btns=`<button class="pag-btn" onclick="eGoPage(${ePage-1})" ${ePage===1?'disabled':''}>←</button>`;
+  for(let i=1;i<=totalPages;i++){if(i===1||i===totalPages||Math.abs(i-ePage)<=1)btns+=`<button class="pag-btn ${i===ePage?'active':''}" onclick="eGoPage(${i})">${i}</button>`;else if(Math.abs(i-ePage)===2)btns+=`<span style="padding:4px;color:#cbd5e1">…</span>`;}
+  btns+=`<button class="pag-btn" onclick="eGoPage(${ePage+1})" ${ePage===totalPages?'disabled':''}>→</button>`;
+  document.getElementById('e-pagBtns').innerHTML=btns;
+}
+function eGoPage(p){const total=Math.ceil(filteredEvents.length/PAGE_SIZE);if(p<1||p>total)return;ePage=p;renderEventTables();}
 
 /* ── MODAL ── */
 function openModal(idx) {
-  const r = allData[idx];
-  if (!r) return;
-
-  const nk=getNameKey(allData), ok=getOwnerKey(allData), ck=getCatKey(allData), sk=getSubKey(allData), dk=getDateKey(allData);
-  const contactKey=getContactKey(allData);
-  const cm=buildColorMap();
-  const ci=cm[r[ck]]??0;
-  const color=PALETTE[ci], bg=PALETTE_BG[ci], txt=PALETTE_TXT[ci];
-
-  // Hero
-  document.getElementById('modalAvatar').textContent = getInitials(r[nk]);
-  document.getElementById('modalAvatar').style.background = color;
-  document.getElementById('modalHeroBg').style.background = color;
-  document.getElementById('modalCompany').textContent = r[nk] || '—';
-  const badge = document.getElementById('modalCatBadge');
-  badge.textContent = r[ck] || '—';
-  badge.style.background = bg;
-  badge.style.color = txt;
-
-  // Fields
-  document.getElementById('mOwner').textContent = r[ok] || '—';
-  document.getElementById('mSub').textContent = r[sk] || '—';
-  document.getElementById('mDate').textContent = formatDate(r[dk]);
-
-  const contactRow = document.getElementById('mContactRow');
-  const contactVal = contactKey ? r[contactKey] : '';
-  if (contactVal) {
-    document.getElementById('mContact').textContent = contactVal;
-    contactRow.style.display = 'flex';
-  } else {
-    contactRow.style.display = 'none';
-  }
-
-  // Duration
-  const d = parseDate(r[dk]);
-  if (d && !isNaN(d)) {
-    const months = Math.round((new Date()-d)/(1000*60*60*24*30.44));
-    const yrs = Math.floor(months/12), rem = months%12;
-    const dur = yrs>0?(rem>0?`${yrs}y ${rem}mo`:`${yrs} year${yrs>1?'s':''}`):`${months} month${months!==1?'s':''}`;
-    document.getElementById('modalFooter').textContent = `Vendor for ${dur}`;
-  } else {
-    document.getElementById('modalFooter').textContent = '';
-  }
-
+  const r=allVendors[idx]; if(!r) return;
+  const nk=getNameKey(allVendors),ok=getOwnerKey(allVendors),ck=getCatKey(allVendors),sk=getSubKey(allVendors),dk=getDateKey(allVendors),contactKey=getContactKey(allVendors);
+  const cm=buildColorMap(); const ci=cm[r[ck]]??0;
+  document.getElementById('modalAvatar').textContent=getInitials(r[nk]);
+  document.getElementById('modalAvatar').style.background=PALETTE[ci];
+  document.getElementById('modalHeroBg').style.background=PALETTE[ci];
+  document.getElementById('modalCompany').textContent=r[nk]||'—';
+  const badge=document.getElementById('modalCatBadge');
+  badge.textContent=r[ck]||'—'; badge.style.background=PALETTE_BG[ci]; badge.style.color=PALETTE_TXT[ci];
+  document.getElementById('mOwner').textContent=r[ok]||'—';
+  document.getElementById('mSub').textContent=r[sk]||'—';
+  document.getElementById('mDate').textContent=formatDate(r[dk]);
+  const contactRow=document.getElementById('mContactRow'),contactVal=contactKey?r[contactKey]:'';
+  if(contactVal){document.getElementById('mContact').textContent=contactVal;contactRow.style.display='flex';}else{contactRow.style.display='none';}
+  const d=parseDate(r[dk]);
+  if(d&&!isNaN(d)){const months=Math.round((new Date()-d)/(1000*60*60*24*30.44));const yrs=Math.floor(months/12),rem=months%12;document.getElementById('modalFooter').textContent=`Vendor for ${yrs>0?(rem>0?`${yrs}y ${rem}mo`:`${yrs} year${yrs>1?'s':''}`):`${months} month${months!==1?'s':''}`}`;}else{document.getElementById('modalFooter').textContent='';}
   // Events
-  const companyName = (r[nk]||'').trim().toLowerCase();
-  const evNk = getNameKey(eventsData.length ? eventsData : [{'Company Name':''}]);
-  const evNameKey = Object.keys(eventsData[0]||{}).find(k => {
-    const lk = k.toLowerCase();
-    return (lk.includes('pop')||lk.includes('event')||lk.includes('name')) && !lk.includes('company');
-  }) || Object.keys(eventsData[0]||{})[1] || '';
-  const evDateKey = Object.keys(eventsData[0]||{}).find(k=>k.toLowerCase().includes('date')) || Object.keys(eventsData[0]||{})[2] || '';
-
-  const vendorEvents = eventsData
-    .filter(e => (e[evNk]||'').trim().toLowerCase() === companyName)
-    .sort((a,b) => { const da=parseDate(a[evDateKey]), db=parseDate(b[evDateKey]); return (da&&db)?db-da:0; });
-
-  document.getElementById('mEventsCount').textContent = vendorEvents.length;
-  document.getElementById('mEventsList').innerHTML = vendorEvents.length === 0
-    ? '<div class="no-events">No pop-up attendance recorded yet</div>'
-    : vendorEvents.map(e => `
-        <div class="event-item">
-          <span class="event-item-name">${e[evNameKey]||'Pop-up'}</span>
-          <span class="event-item-date">${formatDate(e[evDateKey])}</span>
-        </div>`).join('');
-
+  const companyName=(r[nk]||'').trim().toLowerCase();
+  const evvk=getEvVendorKey(allEvents),evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents);
+  const vendorEvents=allEvents.filter(e=>(e[evvk]||'').trim().toLowerCase()===companyName).sort((a,b)=>{const da=parseDate(a[evdk]),db=parseDate(b[evdk]);return (da&&db)?db-da:0;});
+  document.getElementById('mEventsCount').textContent=vendorEvents.length;
+  document.getElementById('mEventsList').innerHTML=vendorEvents.length===0?'<div class="no-events">No pop-up attendance recorded yet</div>':vendorEvents.map(e=>`<div class="event-item"><span class="event-item-name">${e[evnk]||'Pop-up'}</span><span class="event-item-date">${formatDate(e[evdk])}</span></div>`).join('');
   document.getElementById('modalOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }
-
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function handleOverlayClick(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-}
-
-document.addEventListener('keydown', e => { if (e.key==='Escape') closeModal(); });
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}
+function handleOverlayClick(e){if(e.target===document.getElementById('modalOverlay'))closeModal();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
 /* ── LOAD ── */
 async function loadData() {
   try {
-    const [vendorRes, eventsRes] = await Promise.all([fetch(VENDORS_URL), fetch(EVENTS_URL)]);
-    const vendorText = await vendorRes.text();
-    allData = parseCSV(vendorText);
-    filtered = [...allData];
-    try {
-      const eventsText = await eventsRes.text();
-      eventsData = parseCSV(eventsText);
-    } catch(e) { eventsData = []; }
-    document.getElementById('lastUpdated').textContent = 'Updated ' + new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    populateFilters(); renderStats(); renderCharts(); renderCatGrid(); renderTable();
+    const [vRes,eRes]=await Promise.all([fetch(VENDORS_URL),fetch(EVENTS_URL)]);
+    allVendors=parseCSV(await vRes.text());
+    filteredVendors=[...allVendors];
+    try { allEvents=parseCSV(await eRes.text()); filteredEvents=[...allEvents]; } catch(e){allEvents=[];filteredEvents=[];}
+    document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    populateVendorFilters(); populateEventFilters();
+    renderVendorStats(); renderVendorCharts(); renderCatGrid(); renderVendorTable();
+    renderEventStats(); renderEventTiles(); renderEventTables();
   } catch(e) {
-    document.getElementById('tableBody').innerHTML = '<div class="no-data">Could not load data. Make sure your Google Sheet is published.</div>';
+    document.getElementById('v-tableBody').innerHTML='<div class="no-data">Could not load data. Make sure your Google Sheet is published.</div>';
   }
 }
-
 loadData();
 </script>
 </body>
