@@ -306,6 +306,44 @@ tbody tr:hover .view-hint { opacity: 1; }
 }
 
 @media(max-width:600px) { .page{padding:1.25rem;} .topnav{padding:0 1.25rem;} }
+
+/* EVENTS SECTION IN MODAL */
+.modal-events {
+  padding: 0 2rem 1.5rem;
+}
+.events-label {
+  font-size: 0.62rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--slate-lt); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.events-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.events-count-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--sky-deep); color: white;
+  font-size: 0.7rem; font-weight: 700;
+  width: 22px; height: 22px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.events-list {
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 180px; overflow-y: auto;
+}
+.events-list::-webkit-scrollbar { width: 4px; }
+.events-list::-webkit-scrollbar-track { background: transparent; }
+.events-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.event-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--sky-xl); border: 1px solid var(--sky-light);
+  border-radius: 8px; padding: 7px 12px;
+  font-size: 0.78rem;
+}
+.event-item-name { font-weight: 600; color: var(--navy); }
+.event-item-date { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--slate-lt); }
+.no-events {
+  font-size: 0.78rem; color: var(--slate-lt);
+  text-align: center; padding: 1rem 0; font-style: italic;
+}
 </style>
 </head>
 <body>
@@ -422,7 +460,7 @@ tbody tr:hover .view-hint { opacity: 1; }
         <div class="modal-icon">📅</div>
         <div><div class="modal-field-label">Vendor since</div><div class="modal-field-value" id="mDate">—</div></div>
       </div>
-      <div class="modal-row" id="mContactRow">
+
         <div class="modal-icon">📞</div>
         <div><div class="modal-field-label">Contact</div><div class="modal-field-value" id="mContact">—</div></div>
       </div>
@@ -434,6 +472,8 @@ tbody tr:hover .view-hint { opacity: 1; }
 <script>
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=0&single=true&output=csv';
 const CSV_URL = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_URL);
+const EVENTS_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=148276273&single=true&output=csv');
+let eventsData = [];
 
 const PALETTE     = ['#38bdf8','#0ea5e9','#7dd3fc','#0284c7','#64748b','#94a3b8','#2dd4bf','#60a5fa'];
 const PALETTE_BG  = ['#f0f9ff','#e0f2fe','#f0f9ff','#e0f2fe','#f1f5f9','#f8fafc','#f0fdfa','#eff6ff'];
@@ -710,6 +750,26 @@ function openModal(idx){
     document.getElementById('modalFooter').textContent='';
   }
 
+  // Events attendance
+  const companyName = r[nk]||'';
+  const nameKey = Object.keys(eventsData[0]||{}).find(k=>k.toLowerCase().includes('company')||k.toLowerCase().includes('name'))||'';
+  const eventNameKey = Object.keys(eventsData[0]||{}).find(k=>k.toLowerCase().includes('pop')||k.toLowerCase().includes('event')||k.toLowerCase().includes('name'))|| '';
+  const eventDateKey = Object.keys(eventsData[0]||{}).find(k=>k.toLowerCase().includes('date'))||'';
+
+  const vendorEvents = eventsData.filter(e=>(e[nameKey]||'').trim().toLowerCase()===companyName.trim().toLowerCase());
+  vendorEvents.sort((a,b)=>{const da=parseDate(a[eventDateKey]),db=parseDate(b[eventDateKey]);return (db&&da)?db-da:0;});
+
+  document.getElementById('mEventsCount').textContent = vendorEvents.length;
+  if(vendorEvents.length===0){
+    document.getElementById('mEventsList').innerHTML='<div class="no-events">No pop-up attendance recorded yet</div>';
+  } else {
+    document.getElementById('mEventsList').innerHTML = vendorEvents.map(e=>`
+      <div class="event-item">
+        <span class="event-item-name">${e[eventNameKey]||'Pop-up'}</span>
+        <span class="event-item-date">${formatDate(e[eventDateKey])||''}</span>
+      </div>`).join('');
+  }
+
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow='hidden';
 }
@@ -728,10 +788,14 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
 /* ── LOAD DATA ── */
 async function loadData(){
   try{
-    const res=await fetch(CSV_URL);
-    const text=await res.text();
-    allData=parseCSV(text);
-    filtered=[...allData];
+    const [res, evRes] = await Promise.all([fetch(CSV_URL), fetch(EVENTS_URL)]);
+    const text = await res.text();
+    allData = parseCSV(text);
+    filtered = [...allData];
+    try {
+      const evText = await evRes.text();
+      eventsData = parseCSV(evText);
+    } catch(e) { eventsData = []; }
     document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
     populateFilters();renderStats();renderCharts();renderCatGrid();renderTable();
   }catch(e){
