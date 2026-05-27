@@ -213,6 +213,14 @@ tbody tr:hover .view-hint { opacity:1; }
     <select id="v-cat" onchange="applyVendorFilters()"><option value="">All categories</option></select>
     <select id="v-sub" onchange="applyVendorFilters()"><option value="">All subcategories</option></select>
     <select id="v-year" onchange="applyVendorFilters()"><option value="">All years</option></select>
+    <div class="filter-divider"></div>
+    <select id="v-sort" onchange="applyVendorFilters()">
+      <option value="">Sort: Default</option>
+      <option value="newest">Sort: Newest first</option>
+      <option value="oldest">Sort: Oldest first</option>
+      <option value="az">Sort: A → Z</option>
+      <option value="za">Sort: Z → A</option>
+    </select>
   </div>
 
   <div class="stat-grid">
@@ -294,6 +302,25 @@ tbody tr:hover .view-hint { opacity:1; }
     <div class="filter-divider"></div>
     <select id="e-event" onchange="applyEventFilters()"><option value="">All pop-ups</option></select>
     <select id="e-year" onchange="applyEventFilters()"><option value="">All years</option></select>
+    <div class="filter-divider"></div>
+    <select id="e-minappear" onchange="applyEventFilters()">
+      <option value="0">Any appearances</option>
+      <option value="2">2+ pop-ups</option>
+      <option value="3">3+ pop-ups</option>
+      <option value="5">5+ pop-ups</option>
+      <option value="10">10+ pop-ups</option>
+    </select>
+    <div class="filter-divider"></div>
+    <input type="date" id="e-datefrom" onchange="applyEventFilters()" title="From date" style="min-width:unset">
+    <span style="color:var(--slate-lt);font-size:0.75rem;font-weight:600">to</span>
+    <input type="date" id="e-dateto" onchange="applyEventFilters()" title="To date" style="min-width:unset">
+    <div class="filter-divider"></div>
+    <select id="e-sort" onchange="applyEventFilters()">
+      <option value="date-desc">Sort: Most recent</option>
+      <option value="date-asc">Sort: Oldest first</option>
+      <option value="count-desc">Sort: Most vendors</option>
+      <option value="count-asc">Sort: Fewest vendors</option>
+    </select>
   </div>
 
   <div class="stat-grid">
@@ -510,6 +537,7 @@ function applyVendorFilters() {
   const cat=document.getElementById('v-cat').value;
   const sub=document.getElementById('v-sub').value;
   const yr=document.getElementById('v-year').value;
+  const sort=document.getElementById('v-sort').value;
   const ck=getCatKey(allVendors),sk=getSubKey(allVendors),nk=getNameKey(allVendors),ok=getOwnerKey(allVendors),dk=getDateKey(allVendors);
   filteredVendors=allVendors.filter(r=>{
     if(search&&!((r[nk]||'').toLowerCase().includes(search)||(r[ok]||'').toLowerCase().includes(search))) return false;
@@ -518,6 +546,10 @@ function applyVendorFilters() {
     if(yr){const d=parseDate(r[dk]);if(!d||isNaN(d)||d.getFullYear()!==parseInt(yr)) return false;}
     return true;
   });
+  if(sort==='newest') filteredVendors.sort((a,b)=>(parseDate(b[dk])||0)-(parseDate(a[dk])||0));
+  else if(sort==='oldest') filteredVendors.sort((a,b)=>(parseDate(a[dk])||0)-(parseDate(b[dk])||0));
+  else if(sort==='az') filteredVendors.sort((a,b)=>(a[nk]||'').localeCompare(b[nk]||''));
+  else if(sort==='za') filteredVendors.sort((a,b)=>(b[nk]||'').localeCompare(a[nk]||''));
   vPage=1;
   renderVendorStats(); renderVendorCharts(); renderCatGrid(); renderVendorTable();
 }
@@ -592,15 +624,36 @@ function applyEventFilters() {
   const search=document.getElementById('e-search').value.toLowerCase();
   const ev=document.getElementById('e-event').value;
   const yr=document.getElementById('e-year').value;
+  const minAppear=parseInt(document.getElementById('e-minappear').value)||0;
+  const dateFrom=document.getElementById('e-datefrom').value;
+  const dateTo=document.getElementById('e-dateto').value;
+  const evSort=document.getElementById('e-sort').value;
   const evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents),evvk=getEvVendorKey(allEvents);
+
+  // Build per-vendor appearance counts for frequency filter
+  const vendorCounts=countBy(allEvents,evvk);
+
   filteredEvents=allEvents.filter(r=>{
     if(search&&!((r[evvk]||'').toLowerCase().includes(search)||(r[evnk]||'').toLowerCase().includes(search))) return false;
     if(ev&&r[evnk]!==ev) return false;
     if(yr){const d=parseDate(r[evdk]);if(!d||isNaN(d)||d.getFullYear()!==parseInt(yr)) return false;}
+    // Date range filter
+    if(dateFrom){const d=parseDate(r[evdk]);if(!d||isNaN(d)||d<new Date(dateFrom)) return false;}
+    if(dateTo){const d=parseDate(r[evdk]);if(!d||isNaN(d)||d>new Date(dateTo+'T23:59:59')) return false;}
+    // Frequency filter — only show rows where vendor has minAppear+ total appearances
+    if(minAppear>0&&(vendorCounts[r[evvk]]||0)<minAppear) return false;
     return true;
   });
+
+  // Sort appearances table
+  filteredEvents.sort((a,b)=>{
+    const da=parseDate(a[evdk]),db=parseDate(b[evdk]);
+    if(evSort==='date-asc') return (da||0)-(db||0);
+    return (db||0)-(da||0); // default date-desc
+  });
+
   ePage=1;
-  renderEventStats(); renderEventCharts(); renderEventTiles(); renderEventTables();
+  renderEventStats(); renderEventCharts(); renderEventTiles(); renderEventTables(evSort);
 }
 
 function renderEventStats() {
@@ -648,14 +701,19 @@ function renderEventTiles() {
     </div>`).join('');
 }
 
-function renderEventTables() {
+function renderEventTables(evSort='date-desc') {
   const evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents),evvk=getEvVendorKey(allEvents);
 
   // Table 1: vendors per pop-up
   const evCounts=countBy(filteredEvents,evnk);
   const evDates={};
   filteredEvents.forEach(r=>{ if(!evDates[r[evnk]]) evDates[r[evnk]]=r[evdk]; });
-  const sortedEvents=Object.entries(evCounts).sort((a,b)=>{const da=parseDate(evDates[a[0]]),db=parseDate(evDates[b[0]]);return (da&&db)?db-da:0;});
+  const sortedEvents=Object.entries(evCounts).sort((a,b)=>{
+    if(evSort==='count-desc') return b[1]-a[1];
+    if(evSort==='count-asc') return a[1]-b[1];
+    if(evSort==='date-asc'){const da=parseDate(evDates[a[0]]),db=parseDate(evDates[b[0]]);return (da&&db)?da-db:0;}
+    const da=parseDate(evDates[a[0]]),db=parseDate(evDates[b[0]]);return (da&&db)?db-da:0;
+  });
   document.getElementById('e-popupCount').textContent=`${sortedEvents.length} pop-up${sortedEvents.length!==1?'s':''}`;
   document.getElementById('e-popupTableBody').innerHTML=sortedEvents.length===0?'<div class="no-data">No events found.</div>':`
     <table><thead><tr><th>Pop-up name</th><th>Date</th><th>Vendors attended</th></tr></thead>
