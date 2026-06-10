@@ -537,17 +537,28 @@ function switchTab(tab) {
 /* CSV PARSER */
 function parseCSV(text) {
   const lines = text.trim().split('\n');
-  const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
-  return lines.slice(1).map(line=>{
+
+  // Parse a single CSV line respecting quoted fields
+  function parseLine(line) {
     const cols=[]; let cur='', inQ=false;
-    for (let ch of line) {
-      if (ch==='"') inQ=!inQ;
-      else if (ch===','&&!inQ) { cols.push(cur.trim()); cur=''; }
+    for (let i=0; i<line.length; i++) {
+      const ch=line[i];
+      if (ch==='"') {
+        // Handle escaped quotes ""
+        if (inQ && line[i+1]==='"') { cur+='"'; i++; }
+        else inQ=!inQ;
+      } else if (ch===',' && !inQ) { cols.push(cur.trim()); cur=''; }
       else cur+=ch;
     }
     cols.push(cur.trim());
+    return cols.map(v=>v.replace(/^"|"$/g,'').trim());
+  }
+
+  const headers = parseLine(lines[0]);
+  return lines.slice(1).map(line=>{
+    const cols = parseLine(line);
     const obj={};
-    headers.forEach((h,i)=>obj[h]=(cols[i]||'').replace(/^"|"$/g,'').trim());
+    headers.forEach((h,i)=>{ obj[h]=(cols[i]||''); });
     return obj;
   }).filter(r=>r[headers[0]]);
 }
@@ -844,14 +855,19 @@ function populateMallFilters() {
 }
 
 function parseMallNum(val) {
-  if(!val) return null;
+  if(!val || String(val).trim()==='' || String(val).trim()==='—') return null;
   let s = String(val).trim();
-  // Remove currency labels (BND, $, etc) and whitespace
-  s = s.replace(/[B][N][D]/gi, '').replace(/[$£€]/g, '').trim();
-  // Remove thousands commas e.g. 3,500 -> 3500
-  if (/\d,\d{3}/.test(s)) s = s.replace(/,/g, '');
-  // Strip anything left that isn't a digit, dot, or minus
-  s = s.replace(/[^0-9.\-]/g, '');
+  // Remove quotes
+  s = s.replace(/^["']+|["']+$/g, '').trim();
+  // Remove currency symbols and text (BND, $, £, etc.)
+  s = s.replace(/[^0-9.,\-]/gi, '');
+  // Remove thousands commas: 3,500 -> 3500 (only when comma separates groups of 3 digits)
+  s = s.replace(/,(?=\d{3}(?:[^\d]|$))/g, '');
+  // Remove any remaining commas
+  s = s.replace(/,/g, '');
+  // Handle multiple dots — take only the first decimal portion
+  const dotParts = s.split('.');
+  if (dotParts.length > 2) s = dotParts[0] + '.' + dotParts[1];
   const n = parseFloat(s);
   return isNaN(n) ? null : n;
 }
