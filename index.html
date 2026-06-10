@@ -395,12 +395,6 @@ tbody tr:hover .view-hint { opacity:1; }
     <div class="filter-divider"></div>
     <select id="m-district" onchange="applyMallFilters()"><option value="">All districts</option></select>
     <select id="m-traffic" onchange="applyMallFilters()"><option value="">All traffic levels</option></select>
-    <select id="m-verified" onchange="applyMallFilters()">
-      <option value="">All statuses</option>
-      <option value="yes">Verified only</option>
-      <option value="no">Unverified only</option>
-    </select>
-    <div class="filter-divider"></div>
     <select id="m-sort" onchange="applyMallFilters()">
       <option value="">Sort: Default</option>
       <option value="rent-asc">Sort: Rent ↑</option>
@@ -423,14 +417,14 @@ tbody tr:hover .view-hint { opacity:1; }
       <div class="stat-footer">areas covered</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Avg monthly rent</div>
-      <div class="stat-value stat-value-sm" id="m-statAvgRent">—</div>
-      <div class="stat-footer">BND per month</div>
+      <div class="stat-label">Highest monthly rent</div>
+      <div class="stat-value stat-value-sm" id="m-statMaxRent">—</div>
+      <div class="stat-footer" id="m-statMaxRentBuilding"></div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Verified listings</div>
-      <div class="stat-value" id="m-statVerified">—</div>
-      <div class="stat-footer" id="m-statVerifiedPct"></div>
+      <div class="stat-label">Highest sale price</div>
+      <div class="stat-value stat-value-sm" id="m-statMaxSale">—</div>
+      <div class="stat-footer" id="m-statMaxSaleBuilding"></div>
     </div>
   </div>
 
@@ -441,14 +435,14 @@ tbody tr:hover .view-hint { opacity:1; }
         <span class="card-tag">Bar</span>
       </div>
       <div class="chart-wrap"><canvas id="m-districtChart"></canvas></div>
+      <div class="legend" id="m-districtLegend"></div>
     </div>
     <div class="chart-card">
       <div class="card-header">
-        <div><div class="card-title">Traffic indicator breakdown</div><div class="card-sub">Footfall levels across listings</div></div>
-        <span class="card-tag">Doughnut</span>
+        <div><div class="card-title">Top 10 by monthly rent</div><div class="card-sub">Most expensive spaces (BND/month)</div></div>
+        <span class="card-tag">Horizontal</span>
       </div>
-      <div class="chart-wrap"><canvas id="m-trafficChart"></canvas></div>
-      <div class="legend" id="m-trafficLegend"></div>
+      <div class="chart-wrap"><canvas id="m-rentChart"></canvas></div>
     </div>
   </div>
 
@@ -866,8 +860,6 @@ function applyMallFilters() {
     if(q&&!((r['Building Name']||'').toLowerCase().includes(q)||(r['District']||'').toLowerCase().includes(q)||(r['Anchor Tenant']||'').toLowerCase().includes(q))) return false;
     if(dist&&r['District']!==dist) return false;
     if(traffic&&r['Traffic Indicator']!==traffic) return false;
-    if(verified==='yes'&&(r['Verified']||'').toLowerCase()!=='yes') return false;
-    if(verified==='no'&&(r['Verified']||'').toLowerCase()==='yes') return false;
     return true;
   });
 
@@ -884,14 +876,16 @@ function applyMallFilters() {
 function renderMallStats() {
   const total=filteredMalls.length;
   const districts=new Set(filteredMalls.map(r=>r['District']).filter(Boolean)).size;
-  const rents=filteredMalls.map(r=>parseMallNum(r['Monthly Rental (BND)'])).filter(v=>v!=null);
-  const avgRent=rents.length?Math.round(rents.reduce((a,b)=>a+b,0)/rents.length):null;
-  const verified=filteredMalls.filter(r=>(r['Verified']||'').toLowerCase()==='yes').length;
+  const rents=filteredMalls.map(r=>({val:parseMallNum(r['Monthly Rental (BND)']),name:r['Building Name']})).filter(v=>v.val!=null);
+  const sales=filteredMalls.map(r=>({val:parseMallNum(r['Sale Price (BND)']),name:r['Building Name']})).filter(v=>v.val!=null);
+  const maxRent=rents.length?rents.reduce((a,b)=>a.val>b.val?a:b):null;
+  const maxSale=sales.length?sales.reduce((a,b)=>a.val>b.val?a:b):null;
   document.getElementById('m-statTotal').textContent=total;
   document.getElementById('m-statDistricts').textContent=districts;
-  document.getElementById('m-statAvgRent').textContent=avgRent!=null?'BND '+avgRent.toLocaleString():'—';
-  document.getElementById('m-statVerified').textContent=verified;
-  document.getElementById('m-statVerifiedPct').textContent=total>0?Math.round((verified/total)*100)+'% of listings':'';
+  document.getElementById('m-statMaxRent').textContent=maxRent?'BND '+maxRent.val.toLocaleString():'—';
+  document.getElementById('m-statMaxRentBuilding').textContent=maxRent?maxRent.name:'';
+  document.getElementById('m-statMaxSale').textContent=maxSale?'BND '+maxSale.val.toLocaleString():'—';
+  document.getElementById('m-statMaxSaleBuilding').textContent=maxSale?maxSale.name:'';
 }
 
 function renderMallCharts() {
@@ -901,16 +895,15 @@ function renderMallCharts() {
   const distLabels=Object.keys(distCounts).sort((a,b)=>distCounts[b]-distCounts[a]);
   const distColors=distLabels.map((_,i)=>PALETTE[i%PALETTE.length]);
   if(mDistrictChart) mDistrictChart.destroy();
-  mDistrictChart=new Chart(document.getElementById('m-districtChart'),{type:'bar',data:{labels:distLabels,datasets:[{data:distLabels.map(l=>distCounts[l]),backgroundColor:distColors,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} listing${ctx.raw!==1?'s':''}`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:11},color:'#94a3b8',stepSize:1},beginAtZero:true}}}});
+  const dcCtx=document.getElementById('m-districtChart');
+  if(dcCtx){ mDistrictChart=new Chart(dcCtx,{type:'bar',data:{labels:distLabels,datasets:[{data:distLabels.map(l=>distCounts[l]),backgroundColor:distColors,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} listing${ctx.raw!==1?'s':''}`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:11},color:'#94a3b8',stepSize:1},beginAtZero:true}}}}); }
+  document.getElementById('m-districtLegend').innerHTML=distLabels.map((l,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${distColors[i]}"></span>${l} (${distCounts[l]})</span>`).join('');
 
-  // Traffic doughnut chart
-  const trafficCounts={};
-  filteredMalls.forEach(r=>{const t=r['Traffic Indicator']||'Unknown';trafficCounts[t]=(trafficCounts[t]||0)+1;});
-  const tLabels=Object.keys(trafficCounts).sort();
-  const tColors=tLabels.map((_,i)=>PALETTE[i%PALETTE.length]);
+  // Top 10 by monthly rent horizontal bar
+  const rentData=filteredMalls.map(r=>({name:r['Building Name']||'Unknown',val:parseMallNum(r['Monthly Rental (BND)'])||0})).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).slice(0,10);
   if(mTrafficChart) mTrafficChart.destroy();
-  mTrafficChart=new Chart(document.getElementById('m-trafficChart'),{type:'doughnut',data:{labels:tLabels,datasets:[{data:tLabels.map(l=>trafficCounts[l]),backgroundColor:tColors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} listing${ctx.raw!==1?'s':''}`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}}}});
-  document.getElementById('m-trafficLegend').innerHTML=tLabels.map((l,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${tColors[i]}"></span>${l} (${trafficCounts[l]})</span>`).join('');
+  const rcCtx=document.getElementById('m-rentChart');
+  if(rcCtx){ mTrafficChart=new Chart(rcCtx,{type:'bar',data:{labels:rentData.map(r=>r.name),datasets:[{data:rentData.map(r=>r.val),backgroundColor:rentData.map((_,i)=>PALETTE[i%PALETTE.length]),borderRadius:5,borderSkipped:false,barThickness:14}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` BND ${ctx.raw.toLocaleString()}/mo`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:10},color:'#94a3b8'},beginAtZero:true},y:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}}}}}); }
 }
 
 function renderMallDistrictGrid() {
@@ -951,7 +944,7 @@ function renderMallTable() {
       <thead><tr>
         <th>Building</th><th>District</th><th>Floor</th>
         <th>Traffic</th><th>Anchor Tenant</th>
-        <th>Monthly Rent</th><th>Sale Price</th><th>Status</th>
+        <th>Monthly Rent</th><th>Sale Price</th>
       </tr></thead>
       <tbody>${pageData.map(r=>{
         const rent=parseMallNum(r['Monthly Rental (BND)']);
@@ -964,7 +957,6 @@ function renderMallTable() {
           <td class="sub-text">${r['Anchor Tenant']||'—'}</td>
           <td class="date-mono">${rent!=null?'BND '+rent.toLocaleString():'—'}</td>
           <td class="date-mono">${sale!=null?'BND '+sale.toLocaleString():'—'}</td>
-          <td>${verifiedBadge(r['Verified'])}</td>
         </tr>`;
       }).join('')}</tbody>
     </table>`;
