@@ -192,6 +192,9 @@ tbody tr:hover .view-hint { opacity:1; }
   <button class="tab-btn" onclick="switchTab('events')" id="tab-events">
     <span class="tab-icon">🎪</span> Pop-up Marketplace
   </button>
+  <button class="tab-btn" onclick="switchTab('malls')" id="tab-malls">
+    <span class="tab-icon">🏬</span> Shopping Malls
+  </button>
 </div>
 
 <!-- PAGE 1 — VENDORS -->
@@ -376,6 +379,99 @@ tbody tr:hover .view-hint { opacity:1; }
 </div>
 </div>
 
+<!-- PAGE 3 — SHOPPING MALLS -->
+<div class="tab-page" id="page-malls">
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Shopping Malls</div>
+      <div class="page-subtitle">Directory of mall spaces — rental, sale prices and footfall data</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <span style="color:var(--slate-lt);font-size:0.9rem">⌕</span>
+    <input type="text" id="m-search" placeholder="Search building or anchor tenant..." oninput="applyMallFilters()">
+    <div class="filter-divider"></div>
+    <select id="m-district" onchange="applyMallFilters()"><option value="">All districts</option></select>
+    <select id="m-traffic" onchange="applyMallFilters()"><option value="">All traffic levels</option></select>
+    <select id="m-verified" onchange="applyMallFilters()">
+      <option value="">All statuses</option>
+      <option value="yes">Verified only</option>
+      <option value="no">Unverified only</option>
+    </select>
+    <div class="filter-divider"></div>
+    <select id="m-sort" onchange="applyMallFilters()">
+      <option value="">Sort: Default</option>
+      <option value="rent-asc">Sort: Rent ↑</option>
+      <option value="rent-desc">Sort: Rent ↓</option>
+      <option value="sale-asc">Sort: Sale price ↑</option>
+      <option value="sale-desc">Sort: Sale price ↓</option>
+      <option value="az">Sort: A → Z</option>
+    </select>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card primary">
+      <div class="stat-label">Total listings</div>
+      <div class="stat-value" id="m-statTotal">—</div>
+      <div class="stat-footer">mall spaces</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Districts</div>
+      <div class="stat-value" id="m-statDistricts">—</div>
+      <div class="stat-footer">areas covered</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg monthly rent</div>
+      <div class="stat-value stat-value-sm" id="m-statAvgRent">—</div>
+      <div class="stat-footer">BND per month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Verified listings</div>
+      <div class="stat-value" id="m-statVerified">—</div>
+      <div class="stat-footer" id="m-statVerifiedPct"></div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="card-header">
+        <div><div class="card-title">Listings by district</div><div class="card-sub">Number of spaces per district</div></div>
+        <span class="card-tag">Bar</span>
+      </div>
+      <div class="chart-wrap"><canvas id="m-districtChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-header">
+        <div><div class="card-title">Traffic indicator breakdown</div><div class="card-sub">Footfall levels across listings</div></div>
+        <span class="card-tag">Doughnut</span>
+      </div>
+      <div class="chart-wrap"><canvas id="m-trafficChart"></canvas></div>
+      <div class="legend" id="m-trafficLegend"></div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span class="section-title">District breakdown</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="cat-grid" id="m-districtGrid"></div>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <span class="table-card-title">All mall listings</span>
+      <span class="count-pill" id="m-tableCount"></span>
+    </div>
+    <div id="m-tableBody"><div class="loading"><div class="spinner"></div> Loading mall data...</div></div>
+    <div class="pagination" id="m-pagination" style="display:none;">
+      <span id="m-pagInfo"></span>
+      <div class="pag-btns" id="m-pagBtns"></div>
+    </div>
+  </div>
+</div>
+</div>
+
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
   <div class="modal">
@@ -422,6 +518,7 @@ tbody tr:hover .view-hint { opacity:1; }
 <script>
 const VENDORS_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=0&single=true&output=csv');
 const EVENTS_URL  = 'https://corsproxy.io/?' + encodeURIComponent('https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=148276273&single=true&output=csv');
+const MALLS_URL   = 'https://corsproxy.io/?' + encodeURIComponent('https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=437472271&single=true&output=csv');
 
 const PALETTE     = ['#38bdf8','#0ea5e9','#7dd3fc','#0284c7','#64748b','#94a3b8','#2dd4bf','#60a5fa'];
 const PALETTE_BG  = ['#f0f9ff','#e0f2fe','#f0f9ff','#e0f2fe','#f1f5f9','#f8fafc','#f0fdfa','#eff6ff'];
@@ -429,7 +526,8 @@ const PALETTE_TXT = ['#0284c7','#0369a1','#0284c7','#0369a1','#475569','#475569'
 
 const PAGE_SIZE = 15;
 let allVendors=[], filteredVendors=[], allEvents=[], filteredEvents=[];
-let vCatChart, vSubChart, ePerEventChart, eTopVendorsChart;
+let vCatChart, vSubChart, ePerEventChart, eTopVendorsChart, mDistrictChart, mTrafficChart;
+let allMalls=[], filteredMalls=[], mPage=1;
 let vPage=1, ePage=1;
 
 /* TAB SWITCHING */
@@ -439,6 +537,7 @@ function switchTab(tab) {
   document.getElementById('page-'+tab).classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
   if (tab==='events') { setTimeout(()=>{ renderEventCharts(); }, 50); }
+  if (tab==='malls')  { setTimeout(()=>{ renderMallCharts();  }, 50); }
 }
 
 /* CSV PARSER */
@@ -737,16 +836,162 @@ function handleOverlayClick(e){if(e.target===document.getElementById('modalOverl
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
 /* LOAD */
+
+/* ══════════════════════════
+   MALLS TAB
+══════════════════════════ */
+function populateMallFilters() {
+  const districts=[...new Set(allMalls.map(r=>r['District']).filter(Boolean))].sort();
+  const traffics=[...new Set(allMalls.map(r=>r['Traffic Indicator']).filter(Boolean))].sort();
+  const ds=document.getElementById('m-district');
+  districts.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;ds.appendChild(o);});
+  const ts=document.getElementById('m-traffic');
+  traffics.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;ts.appendChild(o);});
+}
+
+function parseMallNum(val) {
+  if(!val) return null;
+  const n=parseFloat(String(val).replace(/[^0-9.]/g,''));
+  return isNaN(n)?null:n;
+}
+
+function applyMallFilters() {
+  const q=document.getElementById('m-search').value.toLowerCase();
+  const dist=document.getElementById('m-district').value;
+  const traffic=document.getElementById('m-traffic').value;
+  const verified=document.getElementById('m-verified').value;
+  const sort=document.getElementById('m-sort').value;
+
+  filteredMalls=allMalls.filter(r=>{
+    if(q&&!((r['Building Name']||'').toLowerCase().includes(q)||(r['District']||'').toLowerCase().includes(q)||(r['Anchor Tenant']||'').toLowerCase().includes(q))) return false;
+    if(dist&&r['District']!==dist) return false;
+    if(traffic&&r['Traffic Indicator']!==traffic) return false;
+    if(verified==='yes'&&(r['Verified']||'').toLowerCase()!=='yes') return false;
+    if(verified==='no'&&(r['Verified']||'').toLowerCase()==='yes') return false;
+    return true;
+  });
+
+  if(sort==='rent-asc')  filteredMalls.sort((a,b)=>(parseMallNum(a['Monthly Rental (BND)'])||0)-(parseMallNum(b['Monthly Rental (BND)'])||0));
+  else if(sort==='rent-desc') filteredMalls.sort((a,b)=>(parseMallNum(b['Monthly Rental (BND)'])||0)-(parseMallNum(a['Monthly Rental (BND)'])||0));
+  else if(sort==='sale-asc')  filteredMalls.sort((a,b)=>(parseMallNum(a['Sale Price (BND)'])||0)-(parseMallNum(b['Sale Price (BND)'])||0));
+  else if(sort==='sale-desc') filteredMalls.sort((a,b)=>(parseMallNum(b['Sale Price (BND)'])||0)-(parseMallNum(a['Sale Price (BND)'])||0));
+  else if(sort==='az') filteredMalls.sort((a,b)=>(a['Building Name']||'').localeCompare(b['Building Name']||''));
+
+  mPage=1;
+  renderMallStats(); renderMallCharts(); renderMallDistrictGrid(); renderMallTable();
+}
+
+function renderMallStats() {
+  const total=filteredMalls.length;
+  const districts=new Set(filteredMalls.map(r=>r['District']).filter(Boolean)).size;
+  const rents=filteredMalls.map(r=>parseMallNum(r['Monthly Rental (BND)'])).filter(v=>v!=null);
+  const avgRent=rents.length?Math.round(rents.reduce((a,b)=>a+b,0)/rents.length):null;
+  const verified=filteredMalls.filter(r=>(r['Verified']||'').toLowerCase()==='yes').length;
+  document.getElementById('m-statTotal').textContent=total;
+  document.getElementById('m-statDistricts').textContent=districts;
+  document.getElementById('m-statAvgRent').textContent=avgRent!=null?'BND '+avgRent.toLocaleString():'—';
+  document.getElementById('m-statVerified').textContent=verified;
+  document.getElementById('m-statVerifiedPct').textContent=total>0?Math.round((verified/total)*100)+'% of listings':'';
+}
+
+function renderMallCharts() {
+  // District bar chart
+  const distCounts={};
+  filteredMalls.forEach(r=>{const d=r['District']||'Unknown';distCounts[d]=(distCounts[d]||0)+1;});
+  const distLabels=Object.keys(distCounts).sort((a,b)=>distCounts[b]-distCounts[a]);
+  const distColors=distLabels.map((_,i)=>PALETTE[i%PALETTE.length]);
+  if(mDistrictChart) mDistrictChart.destroy();
+  mDistrictChart=new Chart(document.getElementById('m-districtChart'),{type:'bar',data:{labels:distLabels,datasets:[{data:distLabels.map(l=>distCounts[l]),backgroundColor:distColors,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} listing${ctx.raw!==1?'s':''}`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:11},color:'#94a3b8',stepSize:1},beginAtZero:true}}}});
+
+  // Traffic doughnut chart
+  const trafficCounts={};
+  filteredMalls.forEach(r=>{const t=r['Traffic Indicator']||'Unknown';trafficCounts[t]=(trafficCounts[t]||0)+1;});
+  const tLabels=Object.keys(trafficCounts).sort();
+  const tColors=tLabels.map((_,i)=>PALETTE[i%PALETTE.length]);
+  if(mTrafficChart) mTrafficChart.destroy();
+  mTrafficChart=new Chart(document.getElementById('m-trafficChart'),{type:'doughnut',data:{labels:tLabels,datasets:[{data:tLabels.map(l=>trafficCounts[l]),backgroundColor:tColors,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} listing${ctx.raw!==1?'s':''}`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}}}});
+  document.getElementById('m-trafficLegend').innerHTML=tLabels.map((l,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${tColors[i]}"></span>${l} (${trafficCounts[l]})</span>`).join('');
+}
+
+function renderMallDistrictGrid() {
+  const distCounts={};
+  filteredMalls.forEach(r=>{const d=r['District']||'Unknown';distCounts[d]=(distCounts[d]||0)+1;});
+  const total=filteredMalls.length||1;
+  document.getElementById('m-districtGrid').innerHTML=Object.entries(distCounts).sort((a,b)=>b[1]-a[1]).map(([name,count],i)=>{
+    const ci=i%PALETTE.length;
+    return `<div class="cat-tile" style="border-left-color:${PALETTE[ci]}"><div class="cat-tile-name" style="color:${PALETTE_TXT[ci]}">${name}</div><div class="cat-tile-count" style="color:${PALETTE[ci]}">${count}</div><div class="cat-tile-pct">${Math.round((count/total)*100)}% of total</div></div>`;
+  }).join('');
+}
+
+function renderMallTable() {
+  const total=filteredMalls.length;
+  const totalPages=Math.ceil(total/PAGE_SIZE);
+  const start=(mPage-1)*PAGE_SIZE;
+  const pageData=filteredMalls.slice(start,start+PAGE_SIZE);
+  document.getElementById('m-tableCount').textContent=`${total} listing${total!==1?'s':''}`;
+
+  if(!pageData.length){
+    document.getElementById('m-tableBody').innerHTML='<div class="no-data">No listings match your filters.</div>';
+    document.getElementById('m-pagination').style.display='none';
+    return;
+  }
+
+  const trafficBadge=(t)=>{
+    const map={'High':'#dcfce7|#166534','Medium':'#fef9c3|#854d0e','Low':'#fee2e2|#991b1b'};
+    const [bg,fg]=(map[t]||'var(--sky-xl)|var(--sky-dark)').split('|');
+    return `<span class="badge" style="background:${bg};color:${fg}">${t||'—'}</span>`;
+  };
+  const verifiedBadge=(v)=>{
+    const yes=(v||'').toLowerCase()==='yes';
+    return `<span class="badge" style="background:${yes?'#dcfce7':'#f1f5f9'};color:${yes?'#166534':'#64748b'}">${yes?'✓ Verified':'Unverified'}</span>`;
+  };
+
+  document.getElementById('m-tableBody').innerHTML=`
+    <table>
+      <thead><tr>
+        <th>Building</th><th>District</th><th>Floor</th>
+        <th>Traffic</th><th>Anchor Tenant</th>
+        <th>Monthly Rent</th><th>Sale Price</th><th>Status</th>
+      </tr></thead>
+      <tbody>${pageData.map(r=>{
+        const rent=parseMallNum(r['Monthly Rental (BND)']);
+        const sale=parseMallNum(r['Sale Price (BND)']);
+        return `<tr>
+          <td><div class="co-name">${r['Building Name']||'—'}</div><div style="font-size:0.68rem;color:var(--slate-lt);font-family:'DM Mono',monospace">${r['ID']||''}</div></td>
+          <td class="sub-text">${r['District']||'—'}</td>
+          <td class="sub-text">${r['Floor Level']||'—'}</td>
+          <td>${trafficBadge(r['Traffic Indicator'])}</td>
+          <td class="sub-text">${r['Anchor Tenant']||'—'}</td>
+          <td class="date-mono">${rent!=null?'BND '+rent.toLocaleString():'—'}</td>
+          <td class="date-mono">${sale!=null?'BND '+sale.toLocaleString():'—'}</td>
+          <td>${verifiedBadge(r['Verified'])}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+
+  const pag=document.getElementById('m-pagination');
+  if(totalPages<=1){pag.style.display='none';return;}
+  pag.style.display='flex';
+  document.getElementById('m-pagInfo').textContent=`Showing ${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total}`;
+  let btns=`<button class="pag-btn" onclick="mGoPage(${mPage-1})" ${mPage===1?'disabled':''}>←</button>`;
+  for(let i=1;i<=totalPages;i++){if(i===1||i===totalPages||Math.abs(i-mPage)<=1)btns+=`<button class="pag-btn ${i===mPage?'active':''}" onclick="mGoPage(${i})">${i}</button>`;else if(Math.abs(i-mPage)===2)btns+=`<span style="padding:4px;color:#cbd5e1">…</span>`;}
+  btns+=`<button class="pag-btn" onclick="mGoPage(${mPage+1})" ${mPage===totalPages?'disabled':''}>→</button>`;
+  document.getElementById('m-pagBtns').innerHTML=btns;
+}
+function mGoPage(p){const total=Math.ceil(filteredMalls.length/PAGE_SIZE);if(p<1||p>total)return;mPage=p;renderMallTable();document.querySelector('#page-malls .table-card').scrollIntoView({behavior:'smooth',block:'start'});}
+
 async function loadData() {
   try {
-    const [vRes,eRes]=await Promise.all([fetch(VENDORS_URL),fetch(EVENTS_URL)]);
+    const [vRes,eRes,mRes]=await Promise.all([fetch(VENDORS_URL),fetch(EVENTS_URL),fetch(MALLS_URL)]);
     allVendors=parseCSV(await vRes.text());
     filteredVendors=[...allVendors];
     try { allEvents=parseCSV(await eRes.text()); filteredEvents=[...allEvents]; } catch(e){allEvents=[];filteredEvents=[];}
+    try { allMalls=parseCSV(await mRes.text()); filteredMalls=[...allMalls]; } catch(e){allMalls=[];filteredMalls=[];}
     document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    populateVendorFilters(); populateEventFilters();
+    populateVendorFilters(); populateEventFilters(); populateMallFilters();
     renderVendorStats(); renderVendorCharts(); renderCatGrid(); renderVendorTable();
     renderEventStats(); renderEventTiles(); renderEventTables();
+    renderMallStats(); renderMallDistrictGrid(); renderMallTable();
   } catch(e) {
     document.getElementById('v-tableBody').innerHTML='<div class="no-data">Could not load data. Make sure your Google Sheet is published.</div>';
   }
