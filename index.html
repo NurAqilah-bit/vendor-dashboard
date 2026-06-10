@@ -1020,6 +1020,25 @@ function openMallModal(idx) {
   document.getElementById('mm-floor').textContent=r['Floor Level']||'—';
   document.getElementById('mm-anchor').textContent=r['Anchor Tenant']||'—';
   document.getElementById('mm-contact').textContent=r['Contact / Mgmt No.']||'—';
+
+  // Nearest landmark
+  document.getElementById('mm-landmark').textContent=r['Nearest Landmark']||'—';
+
+  // Parking badge
+  const parking=r['Parking']||'—';
+  const parkMap={'Yes':'#dcfce7|#166534','No':'#fee2e2|#991b1b','Paid':'#fef9c3|#854d0e'};
+  const [pbg,pfg]=(parkMap[parking]||'#f1f5f9|#64748b').split('|');
+  document.getElementById('mm-parking').innerHTML=parking!=='—'
+    ? `<span class="badge" style="background:${pbg};color:${pfg}">${parking}</span>`
+    : '—';
+
+  // Website / social media — make it a clickable link if it looks like a URL
+  const site=r['Website']||r['Social Media']||'—';
+  const isUrl=site!=='—'&&(site.startsWith('http')||site.startsWith('www')||site.includes('.com')||site.includes('.bn')||site.startsWith('@'));
+  const href=site.startsWith('@')?'https://instagram.com/'+site.replace('@',''):(site.startsWith('http')?site:'https://'+site);
+  document.getElementById('mm-website').innerHTML=site!=='—'
+    ? `<a href="${href}" target="_blank" rel="noopener" style="color:var(--sky-deep);text-decoration:none;font-weight:500">${site} ↗</a>`
+    : '—';
   document.getElementById('mm-rent').textContent=rent!=null?'BND '+rent.toLocaleString()+' / month':'—';
   document.getElementById('mm-sale').textContent=sale!=null?'BND '+sale.toLocaleString():'—';
   document.getElementById('mallModalFooter').textContent='ID: '+(r['ID']||'—');
@@ -1077,6 +1096,18 @@ loadData();
       <div class="modal-row">
         <div class="modal-icon">📞</div>
         <div><div class="modal-field-label">Contact / Mgmt No.</div><div class="modal-field-value" id="mm-contact">—</div></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-icon">📍</div>
+        <div><div class="modal-field-label">Nearest Landmark</div><div class="modal-field-value" id="mm-landmark">—</div></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-icon">🅿️</div>
+        <div><div class="modal-field-label">Parking</div><div class="modal-field-value" id="mm-parking">—</div></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-icon">🌐</div>
+        <div><div class="modal-field-label">Website / Social Media</div><div class="modal-field-value" id="mm-website">—</div></div>
       </div>
     </div>
     <div class="modal-body" style="padding-top:0">
