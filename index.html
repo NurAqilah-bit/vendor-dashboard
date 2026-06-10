@@ -949,8 +949,9 @@ function renderMallTable() {
       <tbody>${pageData.map(r=>{
         const rent=parseMallNum(r['Monthly Rental (BND)']);
         const sale=parseMallNum(r['Sale Price (BND)']);
-        return `<tr>
-          <td><div class="co-name">${r['Building Name']||'—'}</div><div style="font-size:0.68rem;color:var(--slate-lt);font-family:'DM Mono',monospace">${r['ID']||''}</div></td>
+        const midx=allMalls.indexOf(r);
+        return `<tr class="clickable-row" onclick="openMallModal(${midx})">
+          <td><div class="co-name-wrap"><div class="co-avatar" style="background:var(--sky-deep)">${(r['Building Name']||'?').slice(0,2).toUpperCase()}</div><div><div class="co-name">${r['Building Name']||'—'}</div><div class="view-hint">Click to view details →</div></div></div></td>
           <td class="sub-text">${r['District']||'—'}</td>
           <td class="sub-text">${r['Floor Level']||'—'}</td>
           <td>${trafficBadge(r['Traffic Indicator'])}</td>
@@ -972,6 +973,41 @@ function renderMallTable() {
 }
 function mGoPage(p){const total=Math.ceil(filteredMalls.length/PAGE_SIZE);if(p<1||p>total)return;mPage=p;renderMallTable();document.querySelector('#page-malls .table-card').scrollIntoView({behavior:'smooth',block:'start'});}
 
+
+/* MALL MODAL */
+function openMallModal(idx) {
+  const r=allMalls[idx]; if(!r) return;
+  const name=r['Building Name']||'—';
+  const traffic=r['Traffic Indicator']||'';
+  const rent=parseMallNum(r['Monthly Rental (BND)']);
+  const sale=parseMallNum(r['Sale Price (BND)']);
+
+  // Avatar initials
+  document.getElementById('mallModalAvatar').textContent=name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
+
+  // Traffic badge colour
+  const tMap={'High':'#dcfce7|#166534','Medium':'#fef9c3|#854d0e','Low':'#fee2e2|#991b1b'};
+  const [tbg,tfg]=(tMap[traffic]||'#e0f2fe|#0369a1').split('|');
+  const badge=document.getElementById('mallModalTrafficBadge');
+  badge.textContent=traffic?'Traffic: '+traffic:'—';
+  badge.style.background=tbg; badge.style.color=tfg;
+
+  document.getElementById('mallModalName').textContent=name;
+  document.getElementById('mm-district').textContent=r['District']||'—';
+  document.getElementById('mm-floor').textContent=r['Floor Level']||'—';
+  document.getElementById('mm-anchor').textContent=r['Anchor Tenant']||'—';
+  document.getElementById('mm-contact').textContent=r['Contact / Mgmt No.']||'—';
+  document.getElementById('mm-rent').textContent=rent!=null?'BND '+rent.toLocaleString()+' / month':'—';
+  document.getElementById('mm-sale').textContent=sale!=null?'BND '+sale.toLocaleString():'—';
+  document.getElementById('mallModalFooter').textContent='ID: '+(r['ID']||'—');
+
+  document.getElementById('mallModalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeMallModal(){document.getElementById('mallModalOverlay').classList.remove('open');document.body.style.overflow='';}
+function handleMallOverlayClick(e){if(e.target===document.getElementById('mallModalOverlay'))closeMallModal();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMallModal();closeModal();}});
+
 async function loadData() {
   try {
     const [vRes,eRes,mRes]=await Promise.all([fetch(VENDORS_URL),fetch(EVENTS_URL),fetch(MALLS_URL)]);
@@ -990,5 +1026,49 @@ async function loadData() {
 }
 loadData();
 </script>
+
+<!-- MALL MODAL -->
+<div class="modal-overlay" id="mallModalOverlay" onclick="handleMallOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-hero" id="mallModalHero">
+      <div class="modal-hero-bg" id="mallModalHeroBg" style="background:var(--sky-deep)"></div>
+      <button class="modal-close" onclick="closeMallModal()">✕</button>
+      <div class="modal-avatar" id="mallModalAvatar" style="background:var(--sky-deep)"></div>
+      <div class="modal-company" id="mallModalName"></div>
+      <span class="modal-cat-badge" id="mallModalTrafficBadge" style="background:var(--sky-xl);color:var(--sky-dark)"></span>
+    </div>
+    <div class="modal-body">
+      <div class="modal-divider"></div>
+      <div class="modal-row">
+        <div class="modal-icon">📍</div>
+        <div><div class="modal-field-label">District</div><div class="modal-field-value" id="mm-district">—</div></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-icon">🏢</div>
+        <div><div class="modal-field-label">Floor Level</div><div class="modal-field-value" id="mm-floor">—</div></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-icon">⚓</div>
+        <div><div class="modal-field-label">Anchor Tenant</div><div class="modal-field-value" id="mm-anchor">—</div></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-icon">📞</div>
+        <div><div class="modal-field-label">Contact / Mgmt No.</div><div class="modal-field-value" id="mm-contact">—</div></div>
+      </div>
+    </div>
+    <div class="modal-body" style="padding-top:0">
+      <div class="modal-divider"></div>
+      <div class="modal-row">
+        <div class="modal-icon">💰</div>
+        <div><div class="modal-field-label">Monthly Rental</div><div class="modal-field-value" id="mm-rent">—</div></div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-icon">🏷️</div>
+        <div><div class="modal-field-label">Sale Price</div><div class="modal-field-value" id="mm-sale">—</div></div>
+      </div>
+    </div>
+    <div class="modal-footer" id="mallModalFooter"></div>
+  </div>
+</div>
 </body>
 </html>
