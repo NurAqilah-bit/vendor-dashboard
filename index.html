@@ -190,13 +190,11 @@ tbody tr:hover .view-hint { opacity:1; }
     <span class="tab-icon">🏪</span> Vendors
   </button>
   <button class="tab-btn" onclick="switchTab('events')" id="tab-events">
-    <span class="tab-icon">🎪</span> Pop-up Events
+    <span class="tab-icon">🎪</span> Pop-up Marketplace
   </button>
 </div>
 
-<!-- ══════════════════════════════════════════
-     PAGE 1 — VENDORS
-══════════════════════════════════════════ -->
+<!-- PAGE 1 — VENDORS -->
 <div class="tab-page active" id="page-vendors">
 <div class="page">
   <div class="page-header">
@@ -284,9 +282,7 @@ tbody tr:hover .view-hint { opacity:1; }
 </div>
 </div>
 
-<!-- ══════════════════════════════════════════
-     PAGE 2 — EVENTS
-══════════════════════════════════════════ -->
+<!-- PAGE 2 — POP-UP MARKETPLACE -->
 <div class="tab-page" id="page-events">
 <div class="page">
   <div class="page-header">
@@ -302,18 +298,6 @@ tbody tr:hover .view-hint { opacity:1; }
     <div class="filter-divider"></div>
     <select id="e-event" onchange="applyEventFilters()"><option value="">All pop-ups</option></select>
     <select id="e-year" onchange="applyEventFilters()"><option value="">All years</option></select>
-    <div class="filter-divider"></div>
-    <select id="e-minappear" onchange="applyEventFilters()">
-      <option value="0">Any appearances</option>
-      <option value="2">2+ pop-ups</option>
-      <option value="3">3+ pop-ups</option>
-      <option value="5">5+ pop-ups</option>
-      <option value="10">10+ pop-ups</option>
-    </select>
-    <div class="filter-divider"></div>
-    <input type="date" id="e-datefrom" onchange="applyEventFilters()" title="From date" style="min-width:unset">
-    <span style="color:var(--slate-lt);font-size:0.75rem;font-weight:600">to</span>
-    <input type="date" id="e-dateto" onchange="applyEventFilters()" title="To date" style="min-width:unset">
     <div class="filter-divider"></div>
     <select id="e-sort" onchange="applyEventFilters()">
       <option value="date-desc">Sort: Most recent</option>
@@ -448,7 +432,7 @@ let allVendors=[], filteredVendors=[], allEvents=[], filteredEvents=[];
 let vCatChart, vSubChart, ePerEventChart, eTopVendorsChart;
 let vPage=1, ePage=1;
 
-/* ── TAB SWITCHING ── */
+/* TAB SWITCHING */
 function switchTab(tab) {
   document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -457,7 +441,7 @@ function switchTab(tab) {
   if (tab==='events') { setTimeout(()=>{ renderEventCharts(); }, 50); }
 }
 
-/* ── CSV PARSER ── */
+/* CSV PARSER */
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
@@ -475,18 +459,12 @@ function parseCSV(text) {
   }).filter(r=>r[headers[0]]);
 }
 
-/* ── DATE HELPERS ── */
+/* DATE HELPERS */
 function parseDate(str) {
   if (!str) return null;
   const p = str.split('/');
-  if (p.length===2) {
-    let [m,y]=p; if(y.length===2) y='20'+y;
-    return new Date(y+'-'+m.padStart(2,'0')+'-01');
-  }
-  if (p.length===3) {
-    let [d,m,y]=p; if(y.length===2) y='20'+y;
-    return new Date(y+'-'+m.padStart(2,'0')+'-'+d.padStart(2,'0'));
-  }
+  if (p.length===2) { let [m,y]=p; if(y.length===2) y='20'+y; return new Date(y+'-'+m.padStart(2,'0')+'-01'); }
+  if (p.length===3) { let [d,m,y]=p; if(y.length===2) y='20'+y; return new Date(y+'-'+m.padStart(2,'0')+'-'+d.padStart(2,'0')); }
   return new Date(str);
 }
 function formatDate(str) {
@@ -499,7 +477,7 @@ function formatDate(str) {
 function countBy(arr,key) { const c={}; arr.forEach(r=>{const v=r[key]||'Unknown';c[v]=(c[v]||0)+1;}); return c; }
 function getInitials(name) { if(!name) return '?'; const p=name.trim().split(/\s+/); return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():name.slice(0,2).toUpperCase(); }
 
-/* ── KEY DETECTORS ── */
+/* KEY DETECTORS */
 const getCatKey  = d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('category')&&!x.toLowerCase().includes('sub'))||k[1];};
 const getSubKey  = d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('sub'))||k[2];};
 const getNameKey = d=>{const k=Object.keys(d[0]||{});return k.find(x=>x.toLowerCase().includes('company')||x.toLowerCase().includes('name'))||k[0];};
@@ -516,9 +494,7 @@ function buildColorMap() {
   return map;
 }
 
-/* ══════════════════════════
-   VENDOR TAB
-══════════════════════════ */
+/* VENDOR TAB */
 function populateVendorFilters() {
   const ck=getCatKey(allVendors), sk=getSubKey(allVendors), dk=getDateKey(allVendors);
   const cats=[...new Set(allVendors.map(r=>r[ck]).filter(Boolean))].sort();
@@ -607,9 +583,7 @@ function renderVendorTable() {
 }
 function vGoPage(p){const total=Math.ceil(filteredVendors.length/PAGE_SIZE);if(p<1||p>total)return;vPage=p;renderVendorTable();document.querySelector('#page-vendors .table-card').scrollIntoView({behavior:'smooth',block:'start'});}
 
-/* ══════════════════════════
-   EVENTS TAB
-══════════════════════════ */
+/* EVENTS TAB */
 function populateEventFilters() {
   const evnk=getEvNameKey(allEvents), evdk=getEvDateKey(allEvents);
   const events=[...new Set(allEvents.map(r=>r[evnk]).filter(Boolean))].sort();
@@ -624,32 +598,20 @@ function applyEventFilters() {
   const search=document.getElementById('e-search').value.toLowerCase();
   const ev=document.getElementById('e-event').value;
   const yr=document.getElementById('e-year').value;
-  const minAppear=parseInt(document.getElementById('e-minappear').value)||0;
-  const dateFrom=document.getElementById('e-datefrom').value;
-  const dateTo=document.getElementById('e-dateto').value;
   const evSort=document.getElementById('e-sort').value;
   const evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents),evvk=getEvVendorKey(allEvents);
-
-  // Build per-vendor appearance counts for frequency filter
-  const vendorCounts=countBy(allEvents,evvk);
 
   filteredEvents=allEvents.filter(r=>{
     if(search&&!((r[evvk]||'').toLowerCase().includes(search)||(r[evnk]||'').toLowerCase().includes(search))) return false;
     if(ev&&r[evnk]!==ev) return false;
     if(yr){const d=parseDate(r[evdk]);if(!d||isNaN(d)||d.getFullYear()!==parseInt(yr)) return false;}
-    // Date range filter
-    if(dateFrom){const d=parseDate(r[evdk]);if(!d||isNaN(d)||d<new Date(dateFrom)) return false;}
-    if(dateTo){const d=parseDate(r[evdk]);if(!d||isNaN(d)||d>new Date(dateTo+'T23:59:59')) return false;}
-    // Frequency filter — only show rows where vendor has minAppear+ total appearances
-    if(minAppear>0&&(vendorCounts[r[evvk]]||0)<minAppear) return false;
     return true;
   });
 
-  // Sort appearances table
   filteredEvents.sort((a,b)=>{
     const da=parseDate(a[evdk]),db=parseDate(b[evdk]);
     if(evSort==='date-asc') return (da||0)-(db||0);
-    return (db||0)-(da||0); // default date-desc
+    return (db||0)-(da||0);
   });
 
   ePage=1;
@@ -669,7 +631,6 @@ function renderEventStats() {
 
 function renderEventCharts() {
   const evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents),evvk=getEvVendorKey(allEvents);
-  // Vendors per event
   const evCounts=countBy(filteredEvents,evnk);
   const evLabels=Object.keys(evCounts).sort((a,b)=>{
     const ra=filteredEvents.find(r=>r[evnk]===a),rb=filteredEvents.find(r=>r[evnk]===b);
@@ -678,7 +639,6 @@ function renderEventCharts() {
   });
   if(ePerEventChart) ePerEventChart.destroy();
   ePerEventChart=new Chart(document.getElementById('e-perEventChart'),{type:'bar',data:{labels:evLabels,datasets:[{data:evLabels.map(l=>evCounts[l]),backgroundColor:'#38bdf8',borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} vendors`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{family:'Inter',size:10,weight:'500'},color:'#94a3b8',maxRotation:30}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:11},color:'#94a3b8',stepSize:1},beginAtZero:true}}}});
-  // Top vendors
   const vendorCounts=countBy(filteredEvents,evvk);
   const topLabels=Object.keys(vendorCounts).sort((a,b)=>vendorCounts[b]-vendorCounts[a]).slice(0,12);
   const topColors=topLabels.map((_,i)=>PALETTE[i%PALETTE.length]);
@@ -703,8 +663,6 @@ function renderEventTiles() {
 
 function renderEventTables(evSort='date-desc') {
   const evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents),evvk=getEvVendorKey(allEvents);
-
-  // Table 1: vendors per pop-up
   const evCounts=countBy(filteredEvents,evnk);
   const evDates={};
   filteredEvents.forEach(r=>{ if(!evDates[r[evnk]]) evDates[r[evnk]]=r[evdk]; });
@@ -723,7 +681,6 @@ function renderEventTables(evSort='date-desc') {
       <td><span class="badge" style="background:var(--sky-xl);color:var(--sky-dark)">${count} vendor${count!==1?'s':''}</span></td>
     </tr>`).join('')}</tbody></table>`;
 
-  // Table 2: all appearances
   const sorted=[...filteredEvents].sort((a,b)=>{const da=parseDate(a[evdk]),db=parseDate(b[evdk]);return (da&&db)?db-da:0;});
   const total=sorted.length;
   const totalPages=Math.ceil(total/PAGE_SIZE);
@@ -749,7 +706,7 @@ function renderEventTables(evSort='date-desc') {
 }
 function eGoPage(p){const total=Math.ceil(filteredEvents.length/PAGE_SIZE);if(p<1||p>total)return;ePage=p;renderEventTables();}
 
-/* ── MODAL ── */
+/* MODAL */
 function openModal(idx) {
   const r=allVendors[idx]; if(!r) return;
   const nk=getNameKey(allVendors),ok=getOwnerKey(allVendors),ck=getCatKey(allVendors),sk=getSubKey(allVendors),dk=getDateKey(allVendors),contactKey=getContactKey(allVendors);
@@ -767,7 +724,6 @@ function openModal(idx) {
   if(contactVal){document.getElementById('mContact').textContent=contactVal;contactRow.style.display='flex';}else{contactRow.style.display='none';}
   const d=parseDate(r[dk]);
   if(d&&!isNaN(d)){const months=Math.round((new Date()-d)/(1000*60*60*24*30.44));const yrs=Math.floor(months/12),rem=months%12;document.getElementById('modalFooter').textContent=`Vendor for ${yrs>0?(rem>0?`${yrs}y ${rem}mo`:`${yrs} year${yrs>1?'s':''}`):`${months} month${months!==1?'s':''}`}`;}else{document.getElementById('modalFooter').textContent='';}
-  // Events
   const companyName=(r[nk]||'').trim().toLowerCase();
   const evvk=getEvVendorKey(allEvents),evnk=getEvNameKey(allEvents),evdk=getEvDateKey(allEvents);
   const vendorEvents=allEvents.filter(e=>(e[evvk]||'').trim().toLowerCase()===companyName).sort((a,b)=>{const da=parseDate(a[evdk]),db=parseDate(b[evdk]);return (da&&db)?db-da:0;});
@@ -780,7 +736,7 @@ function closeModal(){document.getElementById('modalOverlay').classList.remove('
 function handleOverlayClick(e){if(e.target===document.getElementById('modalOverlay'))closeModal();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
-/* ── LOAD ── */
+/* LOAD */
 async function loadData() {
   try {
     const [vRes,eRes]=await Promise.all([fetch(VENDORS_URL),fetch(EVENTS_URL)]);
