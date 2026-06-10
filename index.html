@@ -845,8 +845,15 @@ function populateMallFilters() {
 
 function parseMallNum(val) {
   if(!val) return null;
-  const n=parseFloat(String(val).replace(/[^0-9.]/g,''));
-  return isNaN(n)?null:n;
+  let s = String(val).trim();
+  // Remove currency labels (BND, $, etc) and whitespace
+  s = s.replace(/[B][N][D]/gi, '').replace(/[$£€]/g, '').trim();
+  // Remove thousands commas e.g. 3,500 -> 3500
+  if (/\d,\d{3}/.test(s)) s = s.replace(/,/g, '');
+  // Strip anything left that isn't a digit, dot, or minus
+  s = s.replace(/[^0-9.\-]/g, '');
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
 }
 
 function applyMallFilters() {
