@@ -510,9 +510,39 @@ tbody tr:hover .view-hint { opacity:1; }
 </div>
 
 <script>
-const VENDORS_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=0&single=true&output=csv');
-const EVENTS_URL  = 'https://corsproxy.io/?' + encodeURIComponent('https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=148276273&single=true&output=csv');
-const MALLS_URL   = 'https://corsproxy.io/?' + encodeURIComponent('https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?gid=437472271&single=true&output=csv');
+// ── SHEET BASE ──────────────────────────────────────────────────────────────
+// All tabs come from the same published Google Sheet.
+// To update: go to File → Share → Publish to web → CSV and replace the base ID below.
+const SHEET_BASE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?single=true&output=csv';
+const VENDORS_GID = '0';
+const EVENTS_GID  = '148276273';
+const MALLS_GID   = '437472271';
+
+// Fetch a sheet tab with automatic CORS proxy fallback
+async function fetchSheet(gid) {
+  const url = SHEET_BASE + '&gid=' + gid;
+  const proxies = [
+    'https://corsproxy.io/?' + encodeURIComponent(url),
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    'https://cors-anywhere.herokuapp.com/' + url,
+  ];
+  let lastErr;
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      if (text.trim().length < 10) throw new Error('Empty response');
+      console.log('Loaded gid=' + gid + ' via ' + proxy.split('?')[0]);
+      return text;
+    } catch(e) { lastErr = e; }
+  }
+  throw new Error('All proxies failed for gid=' + gid + ': ' + lastErr.message);
+}
+
+const VENDORS_URL = null; // legacy — use fetchSheet() instead
+const EVENTS_URL  = null;
+const MALLS_URL   = null;
 
 const PALETTE     = ['#38bdf8','#0ea5e9','#7dd3fc','#0284c7','#64748b','#94a3b8','#2dd4bf','#60a5fa'];
 const PALETTE_BG  = ['#f0f9ff','#e0f2fe','#f0f9ff','#e0f2fe','#f1f5f9','#f8fafc','#f0fdfa','#eff6ff'];
@@ -1052,11 +1082,15 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMallModal();cl
 
 async function loadData() {
   try {
-    const [vRes,eRes,mRes]=await Promise.all([fetch(VENDORS_URL),fetch(EVENTS_URL),fetch(MALLS_URL)]);
-    allVendors=parseCSV(await vRes.text());
+    const [vText,eText,mText]=await Promise.all([
+      fetchSheet(VENDORS_GID),
+      fetchSheet(EVENTS_GID).catch(()=>''),
+      fetchSheet(MALLS_GID).catch(()=>''),
+    ]);
+    allVendors=parseCSV(vText);
     filteredVendors=[...allVendors];
-    try { allEvents=parseCSV(await eRes.text()); filteredEvents=[...allEvents]; } catch(e){allEvents=[];filteredEvents=[];}
-    try { allMalls=parseCSV(await mRes.text()); filteredMalls=[...allMalls]; } catch(e){allMalls=[];filteredMalls=[];}
+    try { allEvents=eText?parseCSV(eText):[]; filteredEvents=[...allEvents]; } catch(e){allEvents=[];filteredEvents=[];}
+    try { allMalls=mText?parseCSV(mText):[]; filteredMalls=[...allMalls]; } catch(e){allMalls=[];filteredMalls=[];}
     document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
     populateVendorFilters(); populateEventFilters(); populateMallFilters();
     renderVendorStats(); renderVendorCharts(); renderCatGrid(); renderVendorTable();
