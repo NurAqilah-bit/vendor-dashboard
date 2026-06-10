@@ -168,6 +168,161 @@ tbody tr:hover .view-hint { opacity:1; }
 .modal-footer { padding:0.875rem 2rem; border-top:1px solid var(--border); background:var(--slate-xl); font-size:0.7rem; color:var(--slate-lt); text-align:center; font-family:'DM Mono',monospace; }
 
 @media(max-width:600px){.page{padding:1.25rem;}.topnav,.tab-bar{padding:0 1.25rem;}}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — TABLET (max 900px)
+══════════════════════════════════════════ */
+@media(max-width:900px){
+  .page{ padding:1.5rem 1.25rem; }
+  .topnav,.tab-bar{ padding:0 1.25rem; }
+  .stat-grid{ grid-template-columns:repeat(2,1fr); gap:10px; }
+  .charts-grid{ grid-template-columns:1fr; }
+  .cat-grid{ grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); }
+  .event-tiles{ grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); }
+  thead th:nth-child(n+5),
+  tbody td:nth-child(n+5){ display:none; }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — MOBILE (max 600px)
+══════════════════════════════════════════ */
+@media(max-width:600px){
+  /* NAV */
+  .topnav{ padding:0 1rem; height:52px; }
+  .nav-name{ font-size:0.85rem; }
+  .updated-tag{ display:none; }
+
+  /* TABS — scrollable row */
+  .tab-bar{
+    padding:0;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .tab-bar::-webkit-scrollbar{ display:none; }
+  .tab-btn{
+    padding:0 1rem;
+    font-size:0.75rem;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+
+  /* PAGE */
+  .page{ padding:1rem; }
+  .page-title{ font-size:1.25rem; }
+  .page-subtitle{ font-size:0.72rem; }
+  .page-header{ margin-bottom:1.25rem; }
+
+  /* FILTER BAR — vertical stack */
+  .filter-bar{
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+    padding:0.75rem;
+  }
+  .filter-bar input[type="text"]{
+    min-width:unset;
+    width:100%;
+  }
+  .filter-bar select{ width:100%; }
+  .filter-divider{ display:none; }
+
+  /* STATS — 2 col */
+  .stat-grid{ grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:1.25rem; }
+  .stat-value{ font-size:1.75rem; }
+  .stat-card{ padding:1rem; }
+
+  /* CHARTS */
+  .charts-grid{ gap:10px; margin-bottom:1.25rem; }
+  .chart-card{ padding:1rem; }
+  .chart-wrap{ height:180px; }
+
+  /* CATEGORY / DISTRICT TILES */
+  .cat-grid{ grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:1.25rem; }
+  .event-tiles{ grid-template-columns:repeat(2,1fr); gap:8px; }
+  .cat-tile,.event-tile{ padding:0.875rem 1rem; }
+  .cat-tile-count,.event-tile-count{ font-size:1.5rem; }
+
+  /* TABLE — hide less important columns, make it scroll */
+  .table-card{ border-radius:10px; }
+  .table-card-header{ padding:1rem; }
+  .table-card-title{ font-size:0.82rem; }
+
+  /* Vendor table: show only name + category */
+  #v-tableBody table{ table-layout:auto; }
+  #v-tableBody thead th:nth-child(2),
+  #v-tableBody thead th:nth-child(4),
+  #v-tableBody thead th:nth-child(5),
+  #v-tableBody tbody td:nth-child(2),
+  #v-tableBody tbody td:nth-child(4),
+  #v-tableBody tbody td:nth-child(5){ display:none; }
+
+  /* Events table: show vendor + event name only */
+  #e-appearanceTableBody thead th:nth-child(3),
+  #e-appearanceTableBody tbody td:nth-child(3),
+  #e-popupTableBody thead th:nth-child(2),
+  #e-popupTableBody tbody td:nth-child(2){ display:none; }
+
+  /* Malls table: show building + rent only */
+  #m-tableBody table{ table-layout:auto; }
+  #m-tableBody thead th:nth-child(2),
+  #m-tableBody thead th:nth-child(3),
+  #m-tableBody thead th:nth-child(4),
+  #m-tableBody thead th:nth-child(5),
+  #m-tableBody tbody td:nth-child(2),
+  #m-tableBody tbody td:nth-child(3),
+  #m-tableBody tbody td:nth-child(4),
+  #m-tableBody tbody td:nth-child(5){ display:none; }
+
+  /* Make tables horizontally scrollable */
+  #v-tableBody,#e-appearanceTableBody,#e-popupTableBody,#m-tableBody{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  /* TABLE cells */
+  tbody td{ padding:10px 1rem; font-size:0.78rem; }
+  thead th{ padding:8px 1rem; }
+  .co-avatar{ width:28px; height:28px; font-size:0.65rem; }
+
+  /* PAGINATION */
+  .pagination{ flex-direction:column; gap:8px; align-items:center; padding:10px 1rem; }
+  .pag-btn{ padding:5px 9px; font-size:0.68rem; }
+
+  /* MODAL */
+  .modal-overlay{ padding:0; align-items:flex-end; }
+  .modal{
+    border-radius:20px 20px 0 0;
+    max-height:88vh;
+    width:100%;
+  }
+  .modal-hero{ padding:1.5rem 1.5rem 1.25rem; }
+  .modal-avatar{ width:56px; height:56px; font-size:1.3rem; }
+  .modal-company{ font-size:1rem; }
+  .modal-body{ padding:0 1.5rem 1rem; }
+  .modal-events{ padding:0 1.5rem 1.25rem; }
+  .modal-footer{ padding:0.75rem 1.5rem; }
+  .modal-icon{ width:30px; height:30px; font-size:0.8rem; }
+  .modal-field-value{ font-size:0.82rem; }
+
+  /* SECTION HEADERS */
+  .section-header{ margin-bottom:0.75rem; }
+  .section-title{ font-size:0.82rem; }
+
+  /* LEGEND */
+  .legend{ gap:5px 12px; margin-top:10px; }
+  .legend-item{ font-size:0.65rem; }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — SMALL MOBILE (max 380px)
+══════════════════════════════════════════ */
+@media(max-width:380px){
+  .stat-grid{ grid-template-columns:1fr 1fr; }
+  .stat-value{ font-size:1.5rem; }
+  .cat-grid,.event-tiles{ grid-template-columns:1fr 1fr; }
+  .page-title{ font-size:1.1rem; }
+}
 </style>
 </head>
 <body>
