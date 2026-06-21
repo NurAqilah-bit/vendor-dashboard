@@ -284,19 +284,8 @@ tbody tr:hover .view-hint { opacity:1; }
   #e-popupTableBody thead th:nth-child(2),
   #e-popupTableBody tbody td:nth-child(2){ display:none; }
 
-  /* Malls table: show building + rent only */
-  #m-tableBody table{ table-layout:auto; }
-  #m-tableBody thead th:nth-child(2),
-  #m-tableBody thead th:nth-child(3),
-  #m-tableBody thead th:nth-child(4),
-  #m-tableBody thead th:nth-child(5),
-  #m-tableBody tbody td:nth-child(2),
-  #m-tableBody tbody td:nth-child(3),
-  #m-tableBody tbody td:nth-child(4),
-  #m-tableBody tbody td:nth-child(5){ display:none; }
-
   /* Make tables horizontally scrollable */
-  #v-tableBody,#e-appearanceTableBody,#e-popupTableBody,#m-tableBody{
+  #v-tableBody,#e-appearanceTableBody,#e-popupTableBody{
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
   }
@@ -360,9 +349,6 @@ tbody tr:hover .view-hint { opacity:1; }
     </button>
     <button class="tab-btn" onclick="switchTab('events')" id="tab-events">
       <span class="tab-icon">🎪</span> Pop-up Marketplace
-    </button>
-    <button class="tab-btn" onclick="switchTab('malls')" id="tab-malls">
-      <span class="tab-icon">🏬</span> Shopping Malls
     </button>
   </div>
   <div class="sidebar-foot">
@@ -556,92 +542,6 @@ tbody tr:hover .view-hint { opacity:1; }
 </div>
 </div>
 
-<!-- PAGE 3 — SHOPPING MALLS -->
-<div class="tab-page" id="page-malls">
-<div class="page">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Shopping Malls</div>
-      <div class="page-subtitle">Directory of mall spaces — rental, sale prices and footfall data</div>
-    </div>
-  </div>
-
-  <div class="filter-bar">
-    <span style="color:var(--slate-lt);font-size:0.9rem">⌕</span>
-    <input type="text" id="m-search" placeholder="Search building or anchor tenant..." oninput="applyMallFilters()">
-    <div class="filter-divider"></div>
-    <select id="m-district" onchange="applyMallFilters()"><option value="">All districts</option></select>
-    <select id="m-traffic" onchange="applyMallFilters()"><option value="">All traffic levels</option></select>
-    <select id="m-sort" onchange="applyMallFilters()">
-      <option value="">Sort: Default</option>
-      <option value="rent-asc">Sort: Rent ↑</option>
-      <option value="rent-desc">Sort: Rent ↓</option>
-      <option value="sale-asc">Sort: Sale price ↑</option>
-      <option value="sale-desc">Sort: Sale price ↓</option>
-      <option value="az">Sort: A → Z</option>
-    </select>
-  </div>
-
-  <div class="stat-grid">
-    <div class="stat-card primary">
-      <div class="stat-label">Total listings</div>
-      <div class="stat-value" id="m-statTotal">—</div>
-      <div class="stat-footer">mall spaces</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Districts</div>
-      <div class="stat-value" id="m-statDistricts">—</div>
-      <div class="stat-footer">areas covered</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Highest monthly rent</div>
-      <div class="stat-value stat-value-sm" id="m-statMaxRent">—</div>
-      <div class="stat-footer" id="m-statMaxRentBuilding"></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Highest sale price</div>
-      <div class="stat-value stat-value-sm" id="m-statMaxSale">—</div>
-      <div class="stat-footer" id="m-statMaxSaleBuilding"></div>
-    </div>
-  </div>
-
-  <div class="charts-grid">
-    <div class="chart-card">
-      <div class="card-header">
-        <div><div class="card-title">Listings by district</div><div class="card-sub">Number of spaces per district</div></div>
-        <span class="card-tag">Bar</span>
-      </div>
-      <div class="chart-wrap"><canvas id="m-districtChart"></canvas></div>
-      <div class="legend" id="m-districtLegend"></div>
-    </div>
-    <div class="chart-card">
-      <div class="card-header">
-        <div><div class="card-title">Top 10 by monthly rent</div><div class="card-sub">Most expensive spaces (BND/month)</div></div>
-        <span class="card-tag">Horizontal</span>
-      </div>
-      <div class="chart-wrap"><canvas id="m-rentChart"></canvas></div>
-    </div>
-  </div>
-
-  <div class="section-header">
-    <span class="section-title">District breakdown</span>
-    <div class="section-line"></div>
-  </div>
-  <div class="cat-grid" id="m-districtGrid"></div>
-
-  <div class="table-card">
-    <div class="table-card-header">
-      <span class="table-card-title">All mall listings</span>
-      <span class="count-pill" id="m-tableCount"></span>
-    </div>
-    <div id="m-tableBody"><div class="loading"><div class="spinner"></div> Loading mall data...</div></div>
-    <div class="pagination" id="m-pagination" style="display:none;">
-      <span id="m-pagInfo"></span>
-      <div class="pag-btns" id="m-pagBtns"></div>
-    </div>
-  </div>
-</div>
-</div>
 
 </div><!-- /.main-content -->
 
@@ -695,7 +595,6 @@ tbody tr:hover .view-hint { opacity:1; }
 const SHEET_BASE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnADaVR_BB2tQf4scT4B1RvlPFYY_tKhP5jhawTYtO4Io1-2s48WjT7KMfhQPf85O2bagocll9uT5B/pub?single=true&output=csv';
 const VENDORS_GID = '0';
 const EVENTS_GID  = '148276273';
-const MALLS_GID   = '437472271';
 
 // Fetch a sheet tab with automatic CORS proxy fallback
 async function fetchSheet(gid) {
@@ -721,7 +620,6 @@ async function fetchSheet(gid) {
 
 const VENDORS_URL = null; // legacy — use fetchSheet() instead
 const EVENTS_URL  = null;
-const MALLS_URL   = null;
 
 const PALETTE     = ['#38bdf8','#c2542c','#0ea5e9','#2f6b5e','#7dd3fc','#a8431f','#0284c7','#94a3b8'];
 const PALETTE_BG  = ['#f0f9ff','#fdf1ea','#e0f2fe','#eef5f2','#f0f9ff','#fdf1ea','#e0f2fe','#f1ede4'];
@@ -729,8 +627,7 @@ const PALETTE_TXT = ['#0284c7','#a8431f','#0369a1','#2f6b5e','#0284c7','#a8431f'
 
 const PAGE_SIZE = 15;
 let allVendors=[], filteredVendors=[], allEvents=[], filteredEvents=[];
-let vCatChart, vSubChart, ePerEventChart, eTopVendorsChart, mDistrictChart, mTrafficChart;
-let allMalls=[], filteredMalls=[], mPage=1;
+let vCatChart, vSubChart, ePerEventChart, eTopVendorsChart;
 let vPage=1, ePage=1;
 
 /* TAB SWITCHING */
@@ -740,7 +637,6 @@ function switchTab(tab) {
   document.getElementById('page-'+tab).classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
   if (tab==='events') { setTimeout(()=>{ renderEventCharts(); }, 50); }
-  if (tab==='malls')  { setTimeout(()=>{ renderMallCharts();  }, 50); }
 }
 
 /* CSV PARSER */
@@ -1051,290 +947,24 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
 /* LOAD */
 
-/* ══════════════════════════
-   MALLS TAB
-══════════════════════════ */
-function populateMallFilters() {
-  const districts=[...new Set(allMalls.map(r=>r['District']).filter(Boolean))].sort();
-  const traffics=[...new Set(allMalls.map(r=>r['Traffic Indicator']).filter(Boolean))].sort();
-  const ds=document.getElementById('m-district');
-  districts.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;ds.appendChild(o);});
-  const ts=document.getElementById('m-traffic');
-  traffics.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;ts.appendChild(o);});
-}
-
-function parseMallNum(val) {
-  if(!val || String(val).trim()==='' || String(val).trim()==='—') return null;
-  let s = String(val).trim();
-  // Remove quotes
-  s = s.replace(/^["']+|["']+$/g, '').trim();
-  // Remove currency symbols and text (BND, $, £, etc.)
-  s = s.replace(/[^0-9.,\-]/gi, '');
-  // Remove thousands commas: 3,500 -> 3500 (only when comma separates groups of 3 digits)
-  s = s.replace(/,(?=\d{3}(?:[^\d]|$))/g, '');
-  // Remove any remaining commas
-  s = s.replace(/,/g, '');
-  // Handle multiple dots — take only the first decimal portion
-  const dotParts = s.split('.');
-  if (dotParts.length > 2) s = dotParts[0] + '.' + dotParts[1];
-  const n = parseFloat(s);
-  return isNaN(n) ? null : n;
-}
-
-function applyMallFilters() {
-  const q=document.getElementById('m-search').value.toLowerCase();
-  const dist=document.getElementById('m-district').value;
-  const traffic=document.getElementById('m-traffic').value;
-  const sort=document.getElementById('m-sort').value;
-
-  filteredMalls=allMalls.filter(r=>{
-    if(q&&!((r['Building Name']||'').toLowerCase().includes(q)||(r['District']||'').toLowerCase().includes(q)||(r['Anchor Tenant']||'').toLowerCase().includes(q))) return false;
-    if(dist&&r['District']!==dist) return false;
-    if(traffic&&r['Traffic Indicator']!==traffic) return false;
-    return true;
-  });
-
-  if(sort==='rent-asc')  filteredMalls.sort((a,b)=>(parseMallNum(a['Monthly Rental (BND)'])||0)-(parseMallNum(b['Monthly Rental (BND)'])||0));
-  else if(sort==='rent-desc') filteredMalls.sort((a,b)=>(parseMallNum(b['Monthly Rental (BND)'])||0)-(parseMallNum(a['Monthly Rental (BND)'])||0));
-  else if(sort==='sale-asc')  filteredMalls.sort((a,b)=>(parseMallNum(a['Sale Price (BND)'])||0)-(parseMallNum(b['Sale Price (BND)'])||0));
-  else if(sort==='sale-desc') filteredMalls.sort((a,b)=>(parseMallNum(b['Sale Price (BND)'])||0)-(parseMallNum(a['Sale Price (BND)'])||0));
-  else if(sort==='az') filteredMalls.sort((a,b)=>(a['Building Name']||'').localeCompare(b['Building Name']||''));
-
-  mPage=1;
-  renderMallStats(); renderMallCharts(); renderMallDistrictGrid(); renderMallTable();
-}
-
-function renderMallStats() {
-  const total=filteredMalls.length;
-  const districts=new Set(filteredMalls.map(r=>r['District']).filter(Boolean)).size;
-  const rents=filteredMalls.map(r=>({val:parseMallNum(r['Monthly Rental (BND)']),name:r['Building Name']})).filter(v=>v.val!=null);
-  const sales=filteredMalls.map(r=>({val:parseMallNum(r['Sale Price (BND)']),name:r['Building Name']})).filter(v=>v.val!=null);
-  const maxRent=rents.length?rents.reduce((a,b)=>a.val>b.val?a:b):null;
-  const maxSale=sales.length?sales.reduce((a,b)=>a.val>b.val?a:b):null;
-  document.getElementById('m-statTotal').textContent=total;
-  document.getElementById('m-statDistricts').textContent=districts;
-  document.getElementById('m-statMaxRent').textContent=maxRent?'BND '+maxRent.val.toLocaleString():'—';
-  document.getElementById('m-statMaxRentBuilding').textContent=maxRent?maxRent.name:'';
-  document.getElementById('m-statMaxSale').textContent=maxSale?'BND '+maxSale.val.toLocaleString():'—';
-  document.getElementById('m-statMaxSaleBuilding').textContent=maxSale?maxSale.name:'';
-}
-
-function renderMallCharts() {
-  // District bar chart
-  const distCounts={};
-  filteredMalls.forEach(r=>{const d=r['District']||'Unknown';distCounts[d]=(distCounts[d]||0)+1;});
-  const distLabels=Object.keys(distCounts).sort((a,b)=>distCounts[b]-distCounts[a]);
-  const distColors=distLabels.map((_,i)=>PALETTE[i%PALETTE.length]);
-  if(mDistrictChart) mDistrictChart.destroy();
-  const dcCtx=document.getElementById('m-districtChart');
-  if(dcCtx){ mDistrictChart=new Chart(dcCtx,{type:'bar',data:{labels:distLabels,datasets:[{data:distLabels.map(l=>distCounts[l]),backgroundColor:distColors,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} listing${ctx.raw!==1?'s':''}`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}},y:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:11},color:'#94a3b8',stepSize:1},beginAtZero:true}}}}); }
-  document.getElementById('m-districtLegend').innerHTML=distLabels.map((l,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${distColors[i]}"></span>${l} (${distCounts[l]})</span>`).join('');
-
-  // Top 10 by monthly rent horizontal bar
-  const rentData=filteredMalls.map(r=>({name:r['Building Name']||'Unknown',val:parseMallNum(r['Monthly Rental (BND)'])||0})).filter(r=>r.val>0).sort((a,b)=>b.val-a.val).slice(0,10);
-  if(mTrafficChart) mTrafficChart.destroy();
-  const rcCtx=document.getElementById('m-rentChart');
-  if(rcCtx){ mTrafficChart=new Chart(rcCtx,{type:'bar',data:{labels:rentData.map(r=>r.name),datasets:[{data:rentData.map(r=>r.val),backgroundColor:rentData.map((_,i)=>PALETTE[i%PALETTE.length]),borderRadius:5,borderSkipped:false,barThickness:14}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` BND ${ctx.raw.toLocaleString()}/mo`},backgroundColor:'#fff',titleColor:'#1e293b',bodyColor:'#64748b',borderColor:'#e2e8f0',borderWidth:1,padding:10,cornerRadius:8}},scales:{x:{grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:10},color:'#94a3b8'},beginAtZero:true},y:{grid:{display:false},ticks:{font:{family:'Inter',size:11,weight:'500'},color:'#94a3b8'}}}}}); }
-}
-
-function renderMallDistrictGrid() {
-  const distCounts={};
-  filteredMalls.forEach(r=>{const d=r['District']||'Unknown';distCounts[d]=(distCounts[d]||0)+1;});
-  const total=filteredMalls.length||1;
-  document.getElementById('m-districtGrid').innerHTML=Object.entries(distCounts).sort((a,b)=>b[1]-a[1]).map(([name,count],i)=>{
-    const ci=i%PALETTE.length;
-    return `<div class="cat-tile" style="border-left-color:${PALETTE[ci]}"><div class="cat-tile-name" style="color:${PALETTE_TXT[ci]}">${name}</div><div class="cat-tile-count" style="color:${PALETTE[ci]}">${count}</div><div class="cat-tile-pct">${Math.round((count/total)*100)}% of total</div></div>`;
-  }).join('');
-}
-
-function renderMallTable() {
-  const total=filteredMalls.length;
-  const totalPages=Math.ceil(total/PAGE_SIZE);
-  const start=(mPage-1)*PAGE_SIZE;
-  const pageData=filteredMalls.slice(start,start+PAGE_SIZE);
-  document.getElementById('m-tableCount').textContent=`${total} listing${total!==1?'s':''}`;
-
-  if(!pageData.length){
-    document.getElementById('m-tableBody').innerHTML='<div class="no-data">No listings match your filters.</div>';
-    document.getElementById('m-pagination').style.display='none';
-    return;
-  }
-
-  const trafficBadge=(t)=>{
-    const map={'High':'#dcfce7|#166534','Medium':'#fef9c3|#854d0e','Low':'#fee2e2|#991b1b'};
-    const [bg,fg]=(map[t]||'var(--sky-xl)|var(--sky-dark)').split('|');
-    return `<span class="badge" style="background:${bg};color:${fg}">${t||'—'}</span>`;
-  };
-  const verifiedBadge=(v)=>{
-    const yes=(v||'').toLowerCase()==='yes';
-    return `<span class="badge" style="background:${yes?'#dcfce7':'#f1f5f9'};color:${yes?'#166534':'#64748b'}">${yes?'✓ Verified':'Unverified'}</span>`;
-  };
-
-  document.getElementById('m-tableBody').innerHTML=`
-    <table>
-      <thead><tr>
-        <th>Building</th><th>District</th><th>Floor</th>
-        <th>Traffic</th><th>Anchor Tenant</th>
-        <th>Monthly Rent</th><th>Sale Price</th>
-      </tr></thead>
-      <tbody>${pageData.map(r=>{
-        const rent=parseMallNum(r['Monthly Rental (BND)']);
-        const sale=parseMallNum(r['Sale Price (BND)']);
-        const midx=allMalls.indexOf(r);
-        return `<tr class="clickable-row" onclick="openMallModal(${midx})">
-          <td><div class="co-name-wrap"><div class="co-avatar" style="background:var(--sky-deep)">${(r['Building Name']||'?').slice(0,2).toUpperCase()}</div><div><div class="co-name">${r['Building Name']||'—'}</div><div class="view-hint">Click to view details →</div></div></div></td>
-          <td class="sub-text">${r['District']||'—'}</td>
-          <td class="sub-text">${r['Floor Level']||'—'}</td>
-          <td>${trafficBadge(r['Traffic Indicator'])}</td>
-          <td class="sub-text">${r['Anchor Tenant']||'—'}</td>
-          <td class="date-mono">${rent!=null?'BND '+rent.toLocaleString():'—'}</td>
-          <td class="date-mono">${sale!=null?'BND '+sale.toLocaleString():'—'}</td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table>`;
-
-  const pag=document.getElementById('m-pagination');
-  if(totalPages<=1){pag.style.display='none';return;}
-  pag.style.display='flex';
-  document.getElementById('m-pagInfo').textContent=`Showing ${start+1}–${Math.min(start+PAGE_SIZE,total)} of ${total}`;
-  let btns=`<button class="pag-btn" onclick="mGoPage(${mPage-1})" ${mPage===1?'disabled':''}>←</button>`;
-  for(let i=1;i<=totalPages;i++){if(i===1||i===totalPages||Math.abs(i-mPage)<=1)btns+=`<button class="pag-btn ${i===mPage?'active':''}" onclick="mGoPage(${i})">${i}</button>`;else if(Math.abs(i-mPage)===2)btns+=`<span style="padding:4px;color:#cbd5e1">…</span>`;}
-  btns+=`<button class="pag-btn" onclick="mGoPage(${mPage+1})" ${mPage===totalPages?'disabled':''}>→</button>`;
-  document.getElementById('m-pagBtns').innerHTML=btns;
-}
-function mGoPage(p){const total=Math.ceil(filteredMalls.length/PAGE_SIZE);if(p<1||p>total)return;mPage=p;renderMallTable();document.querySelector('#page-malls .table-card').scrollIntoView({behavior:'smooth',block:'start'});}
-
-
-/* MALL MODAL */
-function openMallModal(idx) {
-  const r=allMalls[idx]; if(!r) return;
-  const name=r['Building Name']||'—';
-  const traffic=r['Traffic Indicator']||'';
-  const rent=parseMallNum(r['Monthly Rental (BND)']);
-  const sale=parseMallNum(r['Sale Price (BND)']);
-
-  // Avatar initials
-  document.getElementById('mallModalAvatar').textContent=name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
-
-  // Traffic badge colour
-  const tMap={'High':'#dcfce7|#166534','Medium':'#fef9c3|#854d0e','Low':'#fee2e2|#991b1b'};
-  const [tbg,tfg]=(tMap[traffic]||'#e0f2fe|#0369a1').split('|');
-  const badge=document.getElementById('mallModalTrafficBadge');
-  badge.textContent=traffic?'Traffic: '+traffic:'—';
-  badge.style.background=tbg; badge.style.color=tfg;
-
-  document.getElementById('mallModalName').textContent=name;
-  document.getElementById('mm-district').textContent=r['District']||'—';
-  document.getElementById('mm-floor').textContent=r['Floor Level']||'—';
-  document.getElementById('mm-anchor').textContent=r['Anchor Tenant']||'—';
-  document.getElementById('mm-contact').textContent=r['Contact / Mgmt No.']||'—';
-
-  // Nearest landmark
-  document.getElementById('mm-landmark').textContent=r['Nearest Landmark']||'—';
-
-  // Parking badge
-  const parking=r['Parking']||'—';
-  const parkMap={'Yes':'#dcfce7|#166534','No':'#fee2e2|#991b1b','Paid':'#fef9c3|#854d0e'};
-  const [pbg,pfg]=(parkMap[parking]||'#f1f5f9|#64748b').split('|');
-  document.getElementById('mm-parking').innerHTML=parking!=='—'
-    ? `<span class="badge" style="background:${pbg};color:${pfg}">${parking}</span>`
-    : '—';
-
-  // Website / social media — make it a clickable link if it looks like a URL
-  const site=r['Website']||r['Social Media']||'—';
-  const isUrl=site!=='—'&&(site.startsWith('http')||site.startsWith('www')||site.includes('.com')||site.includes('.bn')||site.startsWith('@'));
-  const href=site.startsWith('@')?'https://instagram.com/'+site.replace('@',''):(site.startsWith('http')?site:'https://'+site);
-  document.getElementById('mm-website').innerHTML=site!=='—'
-    ? `<a href="${href}" target="_blank" rel="noopener" style="color:var(--sky-deep);text-decoration:none;font-weight:500">${site} ↗</a>`
-    : '—';
-  document.getElementById('mm-rent').textContent=rent!=null?'BND '+rent.toLocaleString()+' / month':'—';
-  document.getElementById('mm-sale').textContent=sale!=null?'BND '+sale.toLocaleString():'—';
-  document.getElementById('mallModalFooter').textContent='ID: '+(r['ID']||'—');
-
-  document.getElementById('mallModalOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
-}
-function closeMallModal(){document.getElementById('mallModalOverlay').classList.remove('open');document.body.style.overflow='';}
-function handleMallOverlayClick(e){if(e.target===document.getElementById('mallModalOverlay'))closeMallModal();}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeMallModal();closeModal();}});
-
 async function loadData() {
   try {
-    const [vText,eText,mText]=await Promise.all([
+    const [vText,eText]=await Promise.all([
       fetchSheet(VENDORS_GID),
       fetchSheet(EVENTS_GID).catch(()=>''),
-      fetchSheet(MALLS_GID).catch(()=>''),
     ]);
     allVendors=parseCSV(vText);
     filteredVendors=[...allVendors];
     try { allEvents=eText?parseCSV(eText):[]; filteredEvents=[...allEvents]; } catch(e){allEvents=[];filteredEvents=[];}
-    try { allMalls=mText?parseCSV(mText):[]; filteredMalls=[...allMalls]; } catch(e){allMalls=[];filteredMalls=[];}
     document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    populateVendorFilters(); populateEventFilters(); populateMallFilters();
+    populateVendorFilters(); populateEventFilters();
     renderVendorStats(); renderVendorCharts(); renderCatGrid(); renderVendorTable();
     renderEventStats(); renderEventTiles(); renderEventTables();
-    renderMallStats(); renderMallDistrictGrid(); renderMallTable();
   } catch(e) {
     document.getElementById('v-tableBody').innerHTML='<div class="no-data">Could not load data. Make sure your Google Sheet is published.</div>';
   }
 }
 loadData();
 </script>
-
-<!-- MALL MODAL -->
-<div class="modal-overlay" id="mallModalOverlay" onclick="handleMallOverlayClick(event)">
-  <div class="modal">
-    <div class="modal-hero" id="mallModalHero">
-      <div class="modal-hero-bg" id="mallModalHeroBg" style="background:var(--sky-deep)"></div>
-      <button class="modal-close" onclick="closeMallModal()">✕</button>
-      <div class="modal-avatar" id="mallModalAvatar" style="background:var(--sky-deep)"></div>
-      <div class="modal-company" id="mallModalName"></div>
-      <span class="modal-cat-badge" id="mallModalTrafficBadge" style="background:var(--sky-xl);color:var(--sky-dark)"></span>
-    </div>
-    <div class="modal-body">
-      <div class="modal-divider"></div>
-      <div class="modal-row">
-        <div class="modal-icon">📍</div>
-        <div><div class="modal-field-label">District</div><div class="modal-field-value" id="mm-district">—</div></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-icon">🏢</div>
-        <div><div class="modal-field-label">Floor Level</div><div class="modal-field-value" id="mm-floor">—</div></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-icon">⚓</div>
-        <div><div class="modal-field-label">Anchor Tenant</div><div class="modal-field-value" id="mm-anchor">—</div></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-icon">📞</div>
-        <div><div class="modal-field-label">Contact / Mgmt No.</div><div class="modal-field-value" id="mm-contact">—</div></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-icon">📍</div>
-        <div><div class="modal-field-label">Nearest Landmark</div><div class="modal-field-value" id="mm-landmark">—</div></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-icon">🅿️</div>
-        <div><div class="modal-field-label">Parking</div><div class="modal-field-value" id="mm-parking">—</div></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-icon">🌐</div>
-        <div><div class="modal-field-label">Website / Social Media</div><div class="modal-field-value" id="mm-website">—</div></div>
-      </div>
-    </div>
-    <div class="modal-body" style="padding-top:0">
-      <div class="modal-divider"></div>
-      <div class="modal-row">
-        <div class="modal-icon">💰</div>
-        <div><div class="modal-field-label">Monthly Rental</div><div class="modal-field-value" id="mm-rent">—</div></div>
-      </div>
-      <div class="modal-row">
-        <div class="modal-icon">🏷️</div>
-        <div><div class="modal-field-label">Sale Price</div><div class="modal-field-value" id="mm-sale">—</div></div>
-      </div>
-    </div>
-    <div class="modal-footer" id="mallModalFooter"></div>
-  </div>
-</div>
 </body>
 </html>
